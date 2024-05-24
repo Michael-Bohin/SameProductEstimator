@@ -1,6 +1,6 @@
 ﻿global using static System.Console;
-
 using SameProductEstimator;
+using SameProductEstimator.Kosik;
 
 const string kosikProductDataRelativePath = "./../../../ProductParser/ScrapedEshopData/kosikProductDataIndented.json";
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace SameProductEstimator;
+namespace SameProductEstimator.Kosik;
 
 internal class KosikAdapter : Adapter
 {
@@ -39,8 +39,6 @@ internal class KosikAdapter : Adapter
 		string? description = jsonProduct.product.detail.description[0].value; // tady bude potreba samostatny vyzkum jak se array chova co se semantiky tyce
 		string? storageConditions = GetStorageConditions(jsonProduct.product.detail.supplierInfo);
 		string? URL = $"www.kosik.cz{jsonProduct.product.url}";
-
-		
 
 		UnitType? unitType = SafeRetrieveUnitType(jsonProduct);
 
@@ -100,6 +98,7 @@ internal class KosikAdapter : Adapter
 
 	private static NutritionalValues ToNormalized(KosikNutritionalValues values)
 	{
+
 		int energetickaKJ = 1;
 		int eneregeickaKCAL = 2;
 

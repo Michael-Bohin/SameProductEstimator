@@ -1,4 +1,4 @@
-﻿namespace SameProductEstimator;
+﻿namespace SameProductEstimator.Kosik;
 
 // The following JSON schema has been imported as paste special json classes in Visual studio code:
 #pragma warning disable IDE1006 // Naming Styles
@@ -111,10 +111,10 @@ public class KosikNutritionalValues
 {
 	public int valuesPerGrams { get; set; }
 	public string title { get; set; }
-	public Value[] values { get; set; }
+	public NutritionalValue[] values { get; set; }
 }
 
-public class Value
+public class NutritionalValue
 {
 	public string title { get; set; }
 	public object prefix { get; set; }
