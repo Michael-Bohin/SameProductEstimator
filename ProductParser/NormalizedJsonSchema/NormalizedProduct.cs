@@ -1,4 +1,6 @@
-﻿namespace SameProductEstimator;
+﻿using System.Text;
+
+namespace SameProductEstimator;
 
 internal class NormalizedProduct
 {
@@ -19,6 +21,21 @@ internal class NormalizedProduct
 	public decimal? Weight, Volume;
 
 	public NutritionalValues NutritionalValues;
+
+	public override string ToString()
+	{
+		StringBuilder sb = new();
+		sb.AppendLine(Name);
+		sb.AppendLine($"{Price}");
+		sb.Append($"{Eshop}");
+		sb.AppendLine(URL);
+		sb.AppendLine(Description);
+		sb.AppendLine(Producer);
+		sb.AppendLine(StorageConditions);
+		
+		// nutritional values are yet omitted..	
+		return sb.ToString();
+	}
 
 	internal NormalizedProduct(string name, string producer, string description, string storageConditions, string URL, Eshop eshop,
 		decimal price, UnitType unitType, int? pieces, decimal? weight, decimal? volume, NutritionalValues nutritionalValues)

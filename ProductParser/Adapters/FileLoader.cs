@@ -12,6 +12,4 @@ internal class FileLoader
 
 		throw new FileNotFoundException(relativePath);
 	}
-
 }
-
