@@ -27,12 +27,19 @@ internal class NormalizedProduct
 		StringBuilder sb = new();
 		sb.AppendLine(Name);
 		sb.AppendLine($"{Price}");
-		sb.Append($"{Eshop}");
+		sb.AppendLine($"{Eshop}");
 		sb.AppendLine(URL);
 		sb.AppendLine(Description);
 		sb.AppendLine(Producer);
-		sb.AppendLine(StorageConditions);
-		
+		sb.AppendLine(StorageConditions + "\n");
+
+		sb.AppendLine($"{UnitType}");
+		sb.AppendLine($"{Pieces}");
+		sb.AppendLine($"{Weight}");
+		sb.AppendLine($"{Volume}");
+
+		sb.AppendLine($"{NutritionalValues}");
+
 		// nutritional values are yet omitted..	
 		return sb.ToString();
 	}

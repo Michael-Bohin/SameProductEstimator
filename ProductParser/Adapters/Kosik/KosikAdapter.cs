@@ -73,7 +73,7 @@ internal class KosikAdapter : Adapter
 	private static string GetStorageConditions(Supplierinfo[] list)
 	{
 		foreach(Supplierinfo info in list) 
-			if(info.type == "")
+			if(info.title == "Skladovací podmínky")
 				return info.value;
 
 		return "Not found";
