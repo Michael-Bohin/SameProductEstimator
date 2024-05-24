@@ -1,9 +1,28 @@
-﻿namespace SameProductEstimator;
+﻿using System.Text;
+
+namespace SameProductEstimator;
 internal class NutritionalValues
 {
 	public int EnergetickaHodnotaKJ, EnergetickaHodnotaKCAL;
 
 	public decimal Tuky, ZTohoNasyceneMastneKyseliny, Sacharidy, ZTohoCukry, Bilkoviny, Sul, Vlaknina;
+
+	public override string ToString()
+	{
+		StringBuilder sb = new();
+		sb.AppendLine("Nutricni hodnoty na 100 g:");
+		sb.AppendLine($"Enerigeticka hodnota KJ {EnergetickaHodnotaKJ}");
+		sb.AppendLine($"Enerigeticka hodnota KCAL {EnergetickaHodnotaKCAL}");
+		sb.AppendLine($"Tuky {Tuky}");
+		sb.AppendLine($"Mastne kyseliny {ZTohoNasyceneMastneKyseliny}");
+		sb.AppendLine($"Sacharidy{Sacharidy}");
+		sb.AppendLine($"Cukry {ZTohoCukry}");
+		sb.AppendLine($"Bilkoviny {Bilkoviny}");
+		sb.AppendLine($"Sul {Sul}");
+		sb.AppendLine($"Vlaknina {Vlaknina}");
+
+		return sb.ToString();	
+	}
 
 	public NutritionalValues(int energetickaHodnotaKJ, int energetickaHodnotaKCAL, decimal tuky, 
 		decimal zTohoNasyceneMastneKyseliny, decimal sacharidy, decimal zTohoCukry,
