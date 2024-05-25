@@ -1,37 +1,8 @@
-﻿using System.Text.Json;
+﻿namespace SameProductEstimator.Kosik;
 
-namespace SameProductEstimator.Kosik;
-
-internal class KosikAdapter : Adapter
+internal class KosikAdapter : Adapter<KosikJsonProduct>
 {
-	public override List<NormalizedProduct> GetNormalizedProducts(string json)
-	{
-		List<KosikJsonProduct> jsonProducts = JsonSerializer.Deserialize<List<KosikJsonProduct>>(json)!;
-
-		List<NormalizedProduct> normalizedProducts = [];
-
-		List<KosikJsonProduct> invalidJsonProducts = [];
-
-		foreach(KosikJsonProduct jsonProduct in jsonProducts)
-		{
-			if(TryGetNormalized(jsonProduct, out NormalizedProduct normalizedProduct))
-			{
-				normalizedProducts.Add(normalizedProduct);
-			} else
-			{
-				invalidJsonProducts.Add(jsonProduct);
-			}
-		}
-
-		WriteLine(jsonProducts.Count);
-		WriteLine($"Normalized products: {normalizedProducts.Count}");
-		WriteLine($"Invalid: {invalidJsonProducts.Count}");
-		WriteLine($"{normalizedProducts.Count} + {invalidJsonProducts.Count} = {normalizedProducts.Count + invalidJsonProducts.Count}");
-
-		return normalizedProducts;
-	}
-
-	private static bool TryGetNormalized(KosikJsonProduct jsonProduct, out NormalizedProduct normalizedProduct)
+	protected override bool TryGetNormalized(KosikJsonProduct jsonProduct, out NormalizedProduct normalizedProduct)
 	{
 		string name = jsonProduct.product.name;
 
@@ -77,7 +48,6 @@ internal class KosikAdapter : Adapter
 		return "Not found";
 	}
 
-	static int counter = 0;
 	private static UnitType? SafeRetrieveUnitType(KosikJsonProduct jsonProduct)
 	{
 		if(jsonProduct.product is null)	
