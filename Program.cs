@@ -4,28 +4,20 @@ using SameProductEstimator.Kosik;
 using SameProductEstimator.Rohlik;
 using SameProductEstimator.Tesco;
 
-const string kosikProductDataRelativePath = "./../../../ProductParser/ScrapedEshopData/kosikProductDataIndented.json";
-
-const string rohlikZipesRelativePath = "./../../../ProductParser/ScrapedEshopData/rohlikProductData.zip";
-
-const string tescoProductDataRelativePath = "./../../../ProductParser/ScrapedEshopData/tescoProductData.json";
-
-const string zipExtractPath = "./out/decompressedFiles/";
-
 // Parsing Kosik products
-var json = FileHandler.LoadJsonFromPath(kosikProductDataRelativePath);
+var json = FileHandler.LoadJsonFromPath(RuntimeConfig.kosikProductDataRelativePath);
 KosikAdapter ka = new();
 List<NormalizedProduct> kosikProducts = ka.GetNormalizedProducts(json);
 ProductParserLogger.Log(kosikProducts, Eshop.Kosik);
 
 // Parsing Rohlik products
-json = FileHandler.LoadJsonFromPath(rohlikZipesRelativePath, zipExtractPath);
+json = FileHandler.LoadJsonFromPath(RuntimeConfig.rohlikZipesRelativePath, RuntimeConfig.zipExtractPath);
 RohlikAdapter ra = new();
 List<NormalizedProduct> rohlikProducts = ra.GetNormalizedProducts(json);
 ProductParserLogger.Log(rohlikProducts, Eshop.Rohlik);
 
 // Parsing Tesco products
-json = FileHandler.LoadJsonFromPath(tescoProductDataRelativePath);
+json = FileHandler.LoadJsonFromPath(RuntimeConfig.tescoProductDataRelativePath);
 TescoAdapter ta = new();
 List<NormalizedProduct> tescoProducts = ta.GetNormalizedProducts(json);
 ProductParserLogger.Log(tescoProducts, Eshop.Tesco);
