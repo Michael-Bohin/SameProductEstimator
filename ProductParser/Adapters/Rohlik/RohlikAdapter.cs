@@ -68,7 +68,10 @@ internal class RohlikAdapter : Adapter<RohlikJsonProduct>
 		if (product.unit == "kg")
 			return UnitType.Volume;
 
+		if (product.unit == "krabička")
+			return UnitType.Krabicka;
+
 		// unknown other unit type => default to pieces
-		return UnitType.Pieces;
+		return UnitType.Ostatni;
 	}
 }

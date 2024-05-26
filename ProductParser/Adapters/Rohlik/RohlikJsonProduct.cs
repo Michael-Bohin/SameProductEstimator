@@ -98,8 +98,8 @@ public class Packageinfo
 public class Shelflife
 {
 	public string type { get; set; }
-	public int average { get; set; }
-	public int minimal { get; set; }
+	public int? average { get; set; }
+	public int? minimal { get; set; }
 	public object bestBefore { get; set; }
 }
 
@@ -186,26 +186,26 @@ public class Nutritionalvalue
 
 public class Values
 {
-	public Energykj energyKJ { get; set; }
-	public Energykcal energyKCal { get; set; }
-	public Fats fats { get; set; }
-	public Saturatedfats saturatedFats { get; set; }
-	public Carbohydrates carbohydrates { get; set; }
-	public Sugars sugars { get; set; }
-	public Protein protein { get; set; }
-	public Salt salt { get; set; }
-	public Fiber fiber { get; set; }
+	public Energykj? energyKJ { get; set; }
+	public Energykcal? energyKCal { get; set; }
+	public Fats? fats { get; set; }
+	public Saturatedfats? saturatedFats { get; set; }
+	public Carbohydrates? carbohydrates { get; set; }
+	public Sugars? sugars { get; set; }
+	public Protein? protein { get; set; }
+	public Salt? salt { get; set; }
+	public Fiber? fiber { get; set; }
 }
 
 public class Energykj
 {
-	public int amount { get; set; }
+	public decimal? amount { get; set; }
 	public string unit { get; set; }
 }
 
 public class Energykcal
 {
-	public int amount { get; set; }
+	public decimal? amount { get; set; }
 	public string unit { get; set; }
 }
 
@@ -223,7 +223,7 @@ public class Saturatedfats
 
 public class Carbohydrates
 {
-	public float amount { get; set; }
+	public float? amount { get; set; }
 	public string unit { get; set; }
 }
 

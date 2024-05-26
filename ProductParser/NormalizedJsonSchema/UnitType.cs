@@ -3,5 +3,7 @@ public enum UnitType
 {
 	Pieces, 
 	Weight, 
-	Volume
+	Volume, 
+	Krabicka, 
+	Ostatni
 }
