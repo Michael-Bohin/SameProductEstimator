@@ -4,6 +4,12 @@ namespace SameProductEstimator.Tesco;
 
 internal class TescoAdapter : Adapter<TescoJsonProduct>
 {
+	protected override string GetNameOf() => nameof(TescoAdapter);
+
+	protected override string GetRelativeDataPath() => RuntimeConfig.tescoProductDataRelativePath;
+
+	protected override Eshop GetEshopType() => Eshop.Tesco;
+
 	protected override bool TryGetNormalized(TescoJsonProduct tescoProduct, out NormalizedProduct normalizedProduct)
 	{
 		if (AnyCriticalPropertyIsNull(tescoProduct))

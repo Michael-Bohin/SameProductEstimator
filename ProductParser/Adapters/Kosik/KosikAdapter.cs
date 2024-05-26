@@ -2,6 +2,12 @@
 
 internal class KosikAdapter : Adapter<KosikJsonProduct>
 {
+	protected override string GetNameOf() => nameof(KosikAdapter);
+
+	protected override string GetRelativeDataPath() => RuntimeConfig.kosikProductDataRelativePath;
+
+	protected override Eshop GetEshopType() => Eshop.Kosik;
+
 	protected override bool TryGetNormalized(KosikJsonProduct jsonProduct, out NormalizedProduct normalizedProduct)
 	{		
 		if(AnyCriticalPropertyIsNull(jsonProduct))

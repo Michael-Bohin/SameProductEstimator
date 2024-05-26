@@ -1,7 +1,15 @@
-﻿namespace SameProductEstimator.Rohlik;
+﻿using SameProductEstimator.Kosik;
+
+namespace SameProductEstimator.Rohlik;
 
 internal class RohlikAdapter : Adapter<RohlikJsonProduct>
 {
+	protected override string GetNameOf() => nameof(RohlikAdapter);
+
+	protected override string GetRelativeDataPath() => RuntimeConfig.rohlikZipesRelativePath;
+
+	protected override Eshop GetEshopType() => Eshop.Rohlik;
+
 	protected override bool TryGetNormalized(RohlikJsonProduct rohlikProduct, out NormalizedProduct normalizedProduct)
 	{
 		if (AnyCriticalPropertyIsNull(rohlikProduct))
