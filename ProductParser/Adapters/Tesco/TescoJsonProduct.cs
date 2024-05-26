@@ -6,14 +6,14 @@
 
 public class Rootobject
 {
-	public Class1[] Property1 { get; set; }
+	public TescoJsonProduct[] Property1 { get; set; }
 }
 
-public class Class1
+public class TescoJsonProduct
 {
 	public Promotion[] promotions { get; set; }
 	public bool isSponsoredProduct { get; set; }
-	public bool isWhyNotTry { get; set; }
+	public bool isWhyNotTry { get; set; } // lol, property naming of the year goes to Tesco software developers :D :D 
 	public Product product { get; set; }
 }
 
@@ -61,7 +61,7 @@ public class Product
 	public object details { get; set; }
 	public Catchweightlist[] catchWeightList { get; set; }
 	public object[] restrictions { get; set; }
-	public float price { get; set; }
+	public decimal price { get; set; }
 	public float unitPrice { get; set; }
 	public string unitOfMeasure { get; set; }
 	public object[] substitutions { get; set; }
