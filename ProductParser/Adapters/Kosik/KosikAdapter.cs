@@ -63,77 +63,50 @@ internal class KosikAdapter : Adapter<KosikJsonProduct>
 		// further study of the entire range of unit types in Kosik is needed!
 		return null;
 	}
-
 	private static NutritionalValues? ToNormalized(KosikNutritionalValues? values)
 	{
-		if(values is null)
+		if (values?.values is null)
 			return null;
 
-		int energetickaKJ = 0;
-		int eneregetickaKCAL = 0;
+		int energetickaKJ = 0, energetickaKCAL = 0;
+		decimal tuky = 0.0m, mastneKyseliny = 0.0m, sacharidy = 0.0m, cukry = 0.0m, bilkoviny = 0.0m, sul = 0.0m, vlaknina = 0.0m;
 
-		decimal tuky = 0.0m;
-		decimal mastneKyseliny = 0.0m;
-		decimal sacharidy = 0.0m;
-		decimal cukry = 0.0m;
-		decimal bilkoviny = 0.0m;
-		decimal sul = 0.0m;
-		decimal vlaknina = 0.0m;
-
-		if(values is not null && values.values is not null)
+		foreach (NutritionalValue value in values.values)
 		{
-			foreach (NutritionalValue value in values.values)
+			switch (value.title)
 			{
-				if (value.title == "Energetická hodnota")
-				{
-					if (value.unit == "kJ")
-					{
-						if(int.TryParse(value.value, out int val))
-						{
-							energetickaKJ = val;
-						}
-						
-					} else if (value.unit == "kcal")
-					{
-						if(int.TryParse(value.value, out int val))
-						{
-							eneregetickaKCAL = int.Parse(value.value);
-						}
-					}
-				} else if (value.title == "Tuky")
-				{
-					tuky = decimal.Parse(value.value);
-				} else if (value.title == "Z toho nasycené mastné kyseliny")
-				{
-					mastneKyseliny = decimal.Parse(value.value);
-				} else if (value.title == "Sacharidy")
-				{
-					sacharidy = decimal.Parse(value.value);
-				} else if (value.title == "Z toho cukry")
-				{
-					cukry = decimal.Parse(value.value);
-				} else if (value.title == "Bílkoviny")
-				{
-					bilkoviny = decimal.Parse(value.value);
-				} else if (value.title == "Sůl")
-				{
-					sul = decimal.Parse(value.value);
-				} else if (value.title == "Vláknina")
-				{
-					vlaknina = decimal.Parse(value.value);
-				}
+				case "Energetická hodnota":
+					if (value.unit == "kJ" && int.TryParse(value.value, out int kJ))
+						energetickaKJ = kJ;
+					else if (value.unit == "kcal" && int.TryParse(value.value, out int kcal))
+						energetickaKCAL = kcal;
+					break;
+				case "Tuky":
+					tuky = decimal.TryParse(value.value, out decimal tmp) ? tmp : tuky;
+					break;
+				case "Z toho nasycené mastné kyseliny":
+					mastneKyseliny = decimal.TryParse(value.value, out tmp) ? tmp : mastneKyseliny;
+					break;
+				case "Sacharidy":
+					sacharidy = decimal.TryParse(value.value, out tmp) ? tmp : sacharidy;
+					break;
+				case "Z toho cukry":
+					cukry = decimal.TryParse(value.value, out tmp) ? tmp : cukry;
+					break;
+				case "Bílkoviny":
+					bilkoviny = decimal.TryParse(value.value, out tmp) ? tmp : bilkoviny;
+					break;
+				case "Sůl":
+					sul = decimal.TryParse(value.value, out tmp) ? tmp : sul;
+					break;
+				case "Vláknina":
+					vlaknina = decimal.TryParse(value.value, out tmp) ? tmp : vlaknina;
+					break;
 			}
 		}
 
-		NutritionalValues normalizedValues = new(
-			energetickaKJ, eneregetickaKCAL,
-			tuky, mastneKyseliny, 
-			sacharidy, cukry, 
-			bilkoviny, sul, 
-			vlaknina
-			);
-
-		return normalizedValues;
+		return new NutritionalValues(energetickaKJ, energetickaKCAL,
+									 tuky, mastneKyseliny, sacharidy, cukry,
+									 bilkoviny, sul, vlaknina);
 	}
 }
-
