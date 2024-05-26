@@ -4,23 +4,36 @@ namespace SameProductEstimator;
 
 internal class NormalizedProduct
 {
-	public string Name, Producer, Description, StorageConditions, URL;
-
+	// critical properties of product that may not have null value
+	public string Name, URL;
+	public decimal Price;
 	public Eshop Eshop;
 
-	public decimal Price;
+	// non-critical nullable properties
+	public string? Producer = null, Description = null, StorageConditions = null;
 
-	public UnitType UnitType;
+	public UnitType? UnitType = null;
 
 	// Pieces, Wieght and Volume have non-null value for respective UnitType
 	// Weight is measured in grams or kilograms? 
 	// Volume is measered in liters or mililiters?
 	// Constructor checks that always exactly one of the is not null
 	// Further all values must nonnegative values, with tighter ranges coming with more experience about data
-	public int? Pieces;
-	public decimal? Weight, Volume;
+	public int? Pieces = null;
+	public decimal? Weight = null, Volume = null;
 
-	public NutritionalValues NutritionalValues;
+	public NutritionalValues? NutritionalValues = null;
+
+	internal NormalizedProduct(string name, string url, decimal price, Eshop eshop)
+	{
+		Name = AssertStringIsNotNullOrEmpty(name);
+		URL = AssertStringIsNotNullOrEmpty(url); 
+		Eshop = eshop;
+
+		if(price < 0)
+			throw new ArgumentException($"{price}");
+		Price = price;
+	}
 
 	public override string ToString()
 	{
@@ -43,73 +56,46 @@ internal class NormalizedProduct
 		// nutritional values are yet omitted..	
 		return sb.ToString();
 	}
-
-	internal NormalizedProduct(string name, string producer, string description, string storageConditions, string URL, Eshop eshop,
-		decimal price, UnitType unitType, int? pieces, decimal? weight, decimal? volume, NutritionalValues nutritionalValues)
-	{
-		AssertStringIsNotNullOrEmpty(name);
-		AssertStringIsNotNullOrEmpty(producer);
-		AssertStringIsNotNullOrEmpty(description);
-		AssertStringIsNotNullOrEmpty(storageConditions);
-		AssertStringIsNotNullOrEmpty(URL);
-
-		Name = name;
-		Producer = producer;
-		Description = description;
-		StorageConditions = storageConditions;
-		this.URL = URL;
-
-		Eshop = eshop;
-
-		if(price < 0)
-			throw new ArgumentException($"{price}");
-
-		Price = price;
-
-		AssertUnitTypeIsNotNullAndNonNegativeAndUnusedAreNull(pieces, weight, volume, unitType);
-
-		UnitType = unitType;
-		Pieces = pieces;
-		Weight = weight;
-		Volume = volume;
-
-		NutritionalValues = nutritionalValues;
-	}
-
-	private static void AssertStringIsNotNullOrEmpty(string s)
+	private static string AssertStringIsNotNullOrEmpty(string s)
 	{
 		if(string.IsNullOrEmpty(s))
 			throw new ArgumentException(s);
+		return s;
 	}
 
-	private static void AssertUnitTypeIsNotNullAndNonNegativeAndUnusedAreNull(int? pieces, decimal? weight, decimal? volume, UnitType unitType)
+	public void SetDescription(string description) => Description = description;
+	public void SetProducer(string producer) => Producer = producer;
+	public void SetStorageConditions(string conditions)	=> StorageConditions = conditions;
+	
+	public void SetPieces(int pieces)
 	{
-		if(pieces is not null)
+		if(UnitType is not null)
 		{
-			if(pieces < 0)		
-				throw new ArgumentException($"{pieces}");
-
-			if(unitType != UnitType.Pieces)
-				throw new ArgumentException("Pieces are not null, but unit type carries different enum label.");
+			throw new InvalidOperationException($"Unit type has been attempted to be set twice.");
 		}
 
-		if(weight is not null)
+		UnitType = SameProductEstimator.UnitType.Pieces;
+		Pieces = pieces;
+	}
+
+	public void SetWeight(decimal weight)
+	{
+		if (UnitType is not null)
 		{
-			if(weight < 0)
-				throw new ArgumentException($"{weight}");
-
-			if (unitType != UnitType.Weight)
-				throw new ArgumentException("Weight is not null, but unit type carries different enum label.");
+			throw new InvalidOperationException($"Unit type has been attempted to be set twice.");
 		}
+		UnitType = SameProductEstimator.UnitType.Weight;
+		Weight = weight;
+	}
 
-		if(volume is not null)
+	public void SetVolume(decimal volume)
+	{
+		if (UnitType is not null)
 		{
-			if (volume < 0)
-				throw new ArgumentException($"{volume}");
-
-			if (unitType != UnitType.Volume)
-				throw new ArgumentException("Volume is not null, but unit type carries different enum label.");
+			throw new InvalidOperationException($"Unit type has been attempted to be set twice.");
 		}
+		UnitType = SameProductEstimator.UnitType.Volume;
+		Volume = volume;
 	}
 }
 
