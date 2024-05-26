@@ -4,37 +4,38 @@ internal class KosikAdapter : Adapter<KosikJsonProduct>
 {
 	protected override bool TryGetNormalized(KosikJsonProduct jsonProduct, out NormalizedProduct normalizedProduct)
 	{		
-		string? name = jsonProduct?.product?.name;
-		string? URL = SafeRetrieveURL(jsonProduct!);
-
-		if (name is null || URL is null || jsonProduct is null || jsonProduct?.product?.price is null)
+		if(AnyCriticalPropertyIsNull(jsonProduct))
 		{
 			normalizedProduct = null!;
 			return false;
 		}
 
-		decimal price = (decimal)jsonProduct.product.price;
+		string name = jsonProduct.product.name;
+		string url = $"www.kosik.cz{jsonProduct.product.url}";
+		decimal price = (decimal)jsonProduct.product.price!;
 
-
-		normalizedProduct = new(name, URL, price, Eshop.Kosik) {
-			Producer = jsonProduct?.product?.detail?.brand?.name,
-			Description = jsonProduct?.product?.detail?.description?[0]?.value, // tady bude potreba samostatny vyzkum jak se array chova co se semantiky tyce
+		normalizedProduct = new(name, url, price, Eshop.Kosik) {
+			Producer = jsonProduct.product.detail?.brand?.name,
+			Description = jsonProduct.product.detail?.description?[0]?.value, // tady bude potreba samostatny vyzkum jak se array chova co se semantiky tyce
 			StorageConditions = GetStorageConditions(jsonProduct!),
 			UnitType = SafeRetrieveUnitType(jsonProduct!),
 			Pieces = 1,
 			Weight = null,
 			Volume = null,
-			NutritionalValues = ToNormalized(jsonProduct?.product?.detail?.nutritionalValues)
+			NutritionalValues = ToNormalized(jsonProduct.product.detail?.nutritionalValues)
 		};
 		
 		return true;
 	}
 
-	private static string? SafeRetrieveURL(KosikJsonProduct product)
+	private static bool AnyCriticalPropertyIsNull(KosikJsonProduct product)
 	{
-		string? url = product?.product?.url;
+		if (product is null || product?.product is null)
+			return true;
 
-		return url is null ? null : $"www.kosik.cz{url}";
+		Product p = product.product;
+
+		return p?.url is null || p?.price is null || p?.name is null;
 	}
 
 	private static string? GetStorageConditions(KosikJsonProduct product)
@@ -63,6 +64,7 @@ internal class KosikAdapter : Adapter<KosikJsonProduct>
 		// further study of the entire range of unit types in Kosik is needed!
 		return null;
 	}
+
 	private static NutritionalValues? ToNormalized(KosikNutritionalValues? values)
 	{
 		if (values?.values is null)
