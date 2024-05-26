@@ -57,7 +57,7 @@ internal class RohlikAdapter : Adapter<RohlikJsonProduct>
 		else 
 			other++;
 
-		WriteLine($"{product.unit} {kusy}	{vaha}	{objem}	{other}");
+		// WriteLine($"{product.unit} {kusy}	{vaha}	{objem}	{other}");
 
 		if(product.unit == "kg") 
 			return UnitType.Weight;
