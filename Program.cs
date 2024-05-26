@@ -2,6 +2,7 @@
 using SameProductEstimator;
 using SameProductEstimator.Kosik;
 using SameProductEstimator.Rohlik;
+using SameProductEstimator.Tesco;
 using System.IO.Compression;
 using System.Text;
 
@@ -36,3 +37,14 @@ RohlikAdapter ra = new();
 List<NormalizedProduct> rohlikProducts = ra.GetNormalizedProducts(json);
 
 ProductParserLogger.Log(rohlikProducts, Eshop.Rohlik);
+
+
+const string tescoProductDataRelativePath = "./../../../ProductParser/ScrapedEshopData/tescoProductData.json";
+
+json = FileLoader.LoadFileContents(tescoProductDataRelativePath);
+
+TescoAdapter ta = new();
+
+List<NormalizedProduct> tescoProducts = ta.GetNormalizedProducts(json);
+
+ProductParserLogger.Log(tescoProducts, Eshop.Tesco);
