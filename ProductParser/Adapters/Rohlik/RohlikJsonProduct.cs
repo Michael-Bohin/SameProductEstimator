@@ -6,10 +6,10 @@ namespace SameProductEstimator.Rohlik;
 
 public class Rootobject
 {
-	public Class1[] Property1 { get; set; }
+	public RohlikJsonProduct[] Property1 { get; set; }
 }
 
-public class Class1
+public class RohlikJsonProduct
 {
 	public string url { get; set; }
 	public int id { get; set; }
@@ -79,7 +79,7 @@ public class Productstory
 
 public class Price
 {
-	public float amount { get; set; }
+	public decimal amount { get; set; }
 	public string currency { get; set; }
 }
 
