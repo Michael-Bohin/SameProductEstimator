@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -43,16 +44,6 @@ internal partial class EqualProductsFinder
 	/// 4.			For each product in eshop e
 	/// 5.				Creates & saves sorted list of most probable equal products
 	/// </summary>
-	/*public void SortProbableEqualProducts()
-	{
-		EshopSubstrings kosikDict = new(KosikProducts);
-		EshopSubstrings rohlikDict = new(RohlikProducts);
-		EshopSubstrings tescoDict = new(TescoProducts);
-
-		GenerateMostProbableEqualProducts(kosikDict, rohlikDict);
-		GenerateMostProbableEqualProducts(kosikDict, tescoDict);
-		GenerateMostProbableEqualProducts(rohlikDict, tescoDict);
-	}*/
 	public async Task SortProbableEqualProductsAsync()
 	{
 		EshopSubstrings kosikDict = new(KosikProducts);
@@ -72,7 +63,7 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	/// <param name="eshopA"></param>
 	/// <param name="eshopB"></param>
-	private static void GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB)
+	/*private static void GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB)
 	{
 		EshopSubstrings smallerEshop = eshopA.Products.Count < eshopB.Products.Count ? eshopA : eshopB;
 		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
@@ -84,7 +75,90 @@ internal partial class EqualProductsFinder
 			GenerateMostProbableEqualProductsOf(product, largerEshop, outRoot, equalCandidatesFrequencies);
 
 		LogStatsOfCandidates(equalCandidatesFrequencies, smallerEshop, largerEshop);
+	}*/
+	/*private static void GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB)
+	{
+		EshopSubstrings smallerEshop = eshopA.Products.Count < eshopB.Products.Count ? eshopA : eshopB;
+		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
+		string outRoot = CreateLogginDirectory(smallerEshop, largerEshop);
+
+		SortedDictionary<int, int> equalCandidatesFrequencies = new SortedDictionary<int, int>();
+		List<(NormalizedProduct Product, EshopSubstrings LargerEshop, HashSet<NormalizedProduct> equalCandidates)> parallelCandidates = new();
+		foreach (NormalizedProduct product in smallerEshop.Products)
+		{
+			HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product, largerEshop);
+			if (!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
+				equalCandidatesFrequencies[equalCandidates.Count]++;
+			parallelCandidates.Add((product, largerEshop, equalCandidates));
+		}
+		LogStatsOfCandidates(equalCandidatesFrequencies, smallerEshop, largerEshop);
+
+		// Start the sorting operations in parallel
+		var task1 = Task.Run(() => SortCandidatesBySubstring(product, equalCandidates, largerEshop));
+		var task2 = Task.Run(() => SortCandidatesByPrefix(product, equalCandidates, largerEshop));
+		var task3 = Task.Run(() => SortCandidatesByLongestCommonSubsequence(product, equalCandidates, largerEshop));
+
+		// Wait for all tasks to complete
+		await Task.WhenAll(task1, task2, task3);
+	}*/
+
+	private static async Task GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB)
+	{
+
+		EshopSubstrings smallerEshop = eshopA.Products.Count < eshopB.Products.Count ? eshopA : eshopB;
+		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
+		string outRoot = CreateLogginDirectory(smallerEshop, largerEshop);
+
+		SortedDictionary<int, int> equalCandidatesFrequencies = new SortedDictionary<int, int>();
+		List<(NormalizedProduct Product, EshopSubstrings LargerEshop, HashSet<NormalizedProduct> EqualCandidates)> parallelCandidates = new List<(NormalizedProduct, EshopSubstrings, HashSet<NormalizedProduct>)>();
+		Stopwatch sw = Stopwatch.StartNew();
+
+		foreach (NormalizedProduct product in smallerEshop.Products)
+		{
+			HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product, largerEshop);
+			if (!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
+				equalCandidatesFrequencies[equalCandidates.Count]++;
+			parallelCandidates.Add((product, largerEshop, equalCandidates));
+		}
+
+		sw.Stop();
+		WriteLine($"{eshopA.Products[0].Eshop} {eshopB.Products[0].Eshop} equal candidates algorithm {sw.ElapsedMilliseconds / 1_000} s");
+
+		LogStatsOfCandidates(equalCandidatesFrequencies, smallerEshop, largerEshop);
+
+		Stopwatch swx = Stopwatch.StartNew();
+		// Separate tasks for each sorting operation
+		Task task1 = Task.Run(() =>
+		{
+			foreach (var (Product, LargerEshop, EqualCandidates) in parallelCandidates)
+			{
+				SortCandidatesBySubstring(Product, EqualCandidates, LargerEshop);
+			}
+		});
+
+		Task task2 = Task.Run(() =>
+		{
+			foreach (var (Product, LargerEshop, EqualCandidates) in parallelCandidates)
+			{
+				SortCandidatesByPrefix(Product, EqualCandidates, LargerEshop);
+			}
+		});
+
+		/*Task task3 = Task.Run(() =>
+		{
+			foreach (var (Product, LargerEshop, EqualCandidates) in parallelCandidates)
+			{
+				SortCandidatesByLongestCommonSubsequence(Product, EqualCandidates, LargerEshop);
+			}
+		});*/
+
+		// Wait for all tasks to complete
+		await Task.WhenAll(task1, task2/*, task3*/);
+
+		swx.Stop();
+		WriteLine($"{eshopA.Products[0].Eshop} {eshopB.Products[0].Eshop} parallel tasks {swx.ElapsedMilliseconds / 1_000} s");
 	}
+
 
 	private static string CreateLogginDirectory(EshopSubstrings smallerEshop, EshopSubstrings largerEshop)
 	{
@@ -108,19 +182,40 @@ internal partial class EqualProductsFinder
 	/// <param name="product"></param>
 	/// <param name="largerEshop"></param>
 	/// <param name="outRoot"></param>
-	private static void GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot, SortedDictionary<int, int> equalCandidatesFrequencies)
+	/*private static void GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot, SortedDictionary<int, int> equalCandidatesFrequencies)
 	{ 
 		HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product, largerEshop);
 
 		if(!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
 			equalCandidatesFrequencies[equalCandidates.Count]++;
 
+
 		SortCandidatesBySubstring(product, equalCandidates, largerEshop);
 		SortCandidatesByPrefix(product, equalCandidates, largerEshop);
 		SortCandidatesByLongestCommonSubsequence(product, equalCandidates, largerEshop);
 
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
+	}*/
+
+	private static async Task GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot, SortedDictionary<int, int> equalCandidatesFrequencies)
+	{
+		HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product, largerEshop);
+
+		if (!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
+			equalCandidatesFrequencies[equalCandidates.Count]++;
+
+		// Start the sorting operations in parallel
+		var task1 = Task.Run(() => SortCandidatesBySubstring(product, equalCandidates, largerEshop));
+		var task2 = Task.Run(() => SortCandidatesByPrefix(product, equalCandidates, largerEshop));
+		var task3 = Task.Run(() => SortCandidatesByLongestCommonSubsequence(product, equalCandidates, largerEshop));
+
+		// Wait for all tasks to complete
+		await Task.WhenAll(task1, task2, task3);
+
+		// Assuming SortCandidatesByEditationDistance should also be handled here, but not in parallel as previous
+		// var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
 	}
+
 
 	/// <summary>
 	/// Method splits product name on whitespaces into string array.
