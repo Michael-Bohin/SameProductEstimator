@@ -16,9 +16,7 @@ internal class EshopSubstrings
 
 	private void AddSubstringsToDictionary(NormalizedProduct product)
 	{
-		string[] nameParts = product.Name.Split(' ');
-
-		foreach(string part in nameParts)
+		foreach(string part in product.InferredData.lowerCaseNameParts)
 			if(part.Length > 2)
 				AddPartToDictionary(part, product);
 	}

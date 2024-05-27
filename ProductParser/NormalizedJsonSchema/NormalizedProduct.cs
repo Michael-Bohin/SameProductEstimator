@@ -24,6 +24,9 @@ internal class NormalizedProduct
 
 	public NutritionalValues? NutritionalValues = null;
 
+	// own semantic over data from eshops:
+	public InferredData InferredData;
+
 	internal NormalizedProduct(string name, string url, decimal price, Eshop eshop)
 	{
 		Name = AssertStringIsNotNullOrEmpty(name);
@@ -33,6 +36,8 @@ internal class NormalizedProduct
 		if(price < 0)
 			throw new ArgumentException($"{price}");
 		Price = price;
+
+		InferredData = new(name);
 	}
 
 	public override string ToString()

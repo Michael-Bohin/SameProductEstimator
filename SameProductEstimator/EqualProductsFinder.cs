@@ -1,4 +1,5 @@
 ﻿
+using System.Globalization;
 using System.Text;
 
 namespace SameProductEstimator;
@@ -92,8 +93,8 @@ internal class EqualProductsFinder
 	/// <param name="largerEshop"></param>
 	/// <param name="outRoot"></param>
 	private static void GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot, SortedDictionary<int, int> equalCandidatesFrequencies)
-	{
-		HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product.Name, largerEshop);
+	{ 
+		HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product, largerEshop);
 
 		if(!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
 			equalCandidatesFrequencies[equalCandidates.Count]++;
@@ -116,12 +117,11 @@ internal class EqualProductsFinder
 	/// <param name="productName"></param>
 	/// <param name="largerEshop"></param>
 	/// <returns></returns>
-	private static HashSet<NormalizedProduct> ListEqualCandidates(string productName, EshopSubstrings largerEshop)
+	private static HashSet<NormalizedProduct> ListEqualCandidates(NormalizedProduct product, EshopSubstrings largerEshop)
 	{
-		string[] nameParts = productName.Split(' ');
 		HashSet<NormalizedProduct> equalCandidates = [];
 
-		foreach(string part in nameParts)
+		foreach(string part in product.InferredData.lowerCaseNameParts)
 			if(part.Length > 2 && largerEshop.SubstringsToProducts.TryGetValue(part, out List<NormalizedProduct>? value))
 				foreach(NormalizedProduct prodctWithSameSubstring  in value)
 					equalCandidates.Add(prodctWithSameSubstring);
@@ -129,9 +129,29 @@ internal class EqualProductsFinder
 		return equalCandidates;
 	}
 
+	/// <summary>
+	/// Input: 
+	/// product - one concrete product from smaller eshop
+	/// candidates - n candidates of equal products from larger eshop
+	/// 
+	/// Foreach pair (product, candidate i) method calculates similarity by equal substrings ratio which is defined as:
+	/// 
+	/// substrings similarity = equal substrings count / Min( product.name.Split(' ').Length, candidate.name.Split(' ').Length )
+	/// 
+	/// In words, we take number of equal substrings recieved after spliting product's name on whitespace and divide with 
+	/// the smaller number of substrings of both products.
+	/// 
+	/// Output:
+	/// 
+	/// 
+	/// 
+	/// </summary>
+	/// <param name="product"></param>
+	/// <param name="candidates"></param>
+	/// <returns></returns>
 	private static List<NormalizedProduct> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
-		/// work to do
+		
 		
 		return new();
 	}
@@ -169,11 +189,23 @@ internal class EqualProductsFinder
 			candidatesSum += kvp.Key * kvp.Value;
 		}
 
-		sw.WriteLine($"Products from smaller eshop: {products} should be equal to {smallerEshop.Products.Count}");
-		sw.WriteLine($"Sum of all candidates: {candidatesSum}");
-		sw.WriteLine($"Average candidates per product of smaller eshop: {(double)candidatesSum/products}\n\n");
+		double averageCandidatesPerProduct = (double)candidatesSum / products;
+		int numberOfProductPairs = smallerEshop.Products.Count * largerEshop.Products.Count;
+		double candidatesAllPairsRatioPercentage = ((double)candidatesSum / numberOfProductPairs) / 100;
+
+		sw.WriteLine($"Products from smaller eshop: {FormatWithSpaces(products)} should be equal to {FormatWithSpaces(smallerEshop.Products.Count)}");
+		sw.WriteLine($"Sum of all candidates: {FormatWithSpaces(candidatesSum)}");
+		sw.WriteLine($"Average candidates per product of smaller eshop: {averageCandidatesPerProduct:f2}");
+		sw.WriteLine($"Smaller eshop has {FormatWithSpaces(smallerEshop.Products.Count)} products and larger eshop has {FormatWithSpaces(largerEshop.Products.Count)} products.");
+		sw.WriteLine($"Meaning there are {FormatWithSpaces(numberOfProductPairs)} possible pairs of equal products.");
+		sw.WriteLine($"ListEqualCandidates method managed to narrow down the candidate list to {FormatWithSpaces(candidatesSum)}");
+		sw.WriteLine($"Which is {candidatesAllPairsRatioPercentage:f2} % of possible pairs.\n\n");
+
 		sw.WriteLine(sb.ToString());
 	}
+
+	private static string FormatWithSpaces(int number) => number.ToString("n0", CultureInfo.InvariantCulture).Replace(",", " ");
+
 	#endregion
 }
 
