@@ -1,4 +1,6 @@
 ﻿
+using System.Text;
+
 namespace SameProductEstimator;
 
 internal class EqualProductsFinder
@@ -6,6 +8,7 @@ internal class EqualProductsFinder
 	public readonly List<NormalizedProduct> KosikProducts;
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
+	private const string logginDirectory = "./out/equalProductsFinder/";
 
 	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
 	{
@@ -17,6 +20,8 @@ internal class EqualProductsFinder
 		TescoProducts = tescoProducts;
 
 		WriteLine("Normalized products have been loaded to same product estimator.");
+
+		Directory.CreateDirectory(logginDirectory);	
 	}
 
 	private static void AssertAllProductsAreFromSameEshop(List<NormalizedProduct> products, Eshop eshop)
@@ -56,8 +61,12 @@ internal class EqualProductsFinder
 		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
 		string outRoot = CreateLogginDirectory(smallerEshop, largerEshop);
 
+		SortedDictionary<int, int> equalCandidatesFrequencies = [];
+
 		foreach(NormalizedProduct product in smallerEshop.Products)
-			GenerateMostProbableEqualProductsOf(product, largerEshop, outRoot);
+			GenerateMostProbableEqualProductsOf(product, largerEshop, outRoot, equalCandidatesFrequencies);
+
+		LogStatsOfCandidates(equalCandidatesFrequencies, smallerEshop, largerEshop);
 	}
 
 	private static string CreateLogginDirectory(EshopSubstrings smallerEshop, EshopSubstrings largerEshop)
@@ -82,42 +91,89 @@ internal class EqualProductsFinder
 	/// <param name="product"></param>
 	/// <param name="largerEshop"></param>
 	/// <param name="outRoot"></param>
-	private static void GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot)
+	private static void GenerateMostProbableEqualProductsOf(NormalizedProduct product, EshopSubstrings largerEshop, string outRoot, SortedDictionary<int, int> equalCandidatesFrequencies)
 	{
-		List<NormalizedProduct> equalCandidates = ListEqualCandidates(product.Name, largerEshop);
-		
+		HashSet<NormalizedProduct> equalCandidates = ListEqualCandidates(product.Name, largerEshop);
+
+		if(!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
+			equalCandidatesFrequencies[equalCandidates.Count]++;
+
 		var equalBySubstringRatio = SortCandidatesBySubstring(product, equalCandidates);
 		var equalByCommonPrefixRatio = SortCandidatesByPrefix(product, equalCandidates);
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
 
 	}
 
-	private static List<NormalizedProduct> ListEqualCandidates(string productName, EshopSubstrings largerEshop)
+	/// <summary>
+	/// Method splits product name on whitespaces into string array.
+	/// The hashset of equal candidates is than created by adding all product references that contain
+	/// at least one same substring in their name. This information can be looked up in linear time thanks 
+	/// to the substring dictionary in largerEshop class.
+	/// 
+	/// Only substrings with length of at least three characters are considered, since substrings with 
+	/// one or two characters are more likely to connect semantically unrelated products.
+	/// </summary>
+	/// <param name="productName"></param>
+	/// <param name="largerEshop"></param>
+	/// <returns></returns>
+	private static HashSet<NormalizedProduct> ListEqualCandidates(string productName, EshopSubstrings largerEshop)
 	{
-		// work to do 
+		string[] nameParts = productName.Split(' ');
+		HashSet<NormalizedProduct> equalCandidates = [];
 
-		return new();
+		foreach(string part in nameParts)
+			if(part.Length > 2 && largerEshop.SubstringsToProducts.TryGetValue(part, out List<NormalizedProduct>? value))
+				foreach(NormalizedProduct prodctWithSameSubstring  in value)
+					equalCandidates.Add(prodctWithSameSubstring);
+
+		return equalCandidates;
 	}
 
-	private static List<NormalizedProduct> SortCandidatesBySubstring(NormalizedProduct product,  List<NormalizedProduct> candidates)
+	private static List<NormalizedProduct> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
 		/// work to do
 		
 		return new();
 	}
 
-	private static List<NormalizedProduct> SortCandidatesByPrefix(NormalizedProduct product, List<NormalizedProduct> candidates)
+	private static List<NormalizedProduct> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
 		/// work to do
 
 		return new();
 	}
 
-	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, List<NormalizedProduct> candidates)
+	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
 		/// work to do
 
 		return new();
 	}
+
+	#region Logging 
+	private static void LogStatsOfCandidates(SortedDictionary<int, int> equalCandidatesFrequencies, EshopSubstrings smallerEshop, EshopSubstrings largerEshop)
+	{
+		Eshop smallerName = smallerEshop.Products.First().Eshop;
+		Eshop largerName = largerEshop.Products.First().Eshop;
+
+		using StreamWriter sw = new($"{logginDirectory}candidatesStas{smallerName}_to_{largerName}.txt");
+		sw.WriteLine($"Equal candidates frequencies of {smallerName} -> {largerName}");
+
+		int products = 0, candidatesSum = 0;
+		StringBuilder sb = new();
+		sb.AppendLine("Format -- Equal candidates count : frequency");
+		foreach (var kvp in equalCandidatesFrequencies)
+		{
+			sb.AppendLine($"{kvp.Key} : {kvp.Value}");
+			products += kvp.Value;
+			candidatesSum += kvp.Key * kvp.Value;
+		}
+
+		sw.WriteLine($"Products from smaller eshop: {products} should be equal to {smallerEshop.Products.Count}");
+		sw.WriteLine($"Sum of all candidates: {candidatesSum}");
+		sw.WriteLine($"Average candidates per product of smaller eshop: {(double)candidatesSum/products}\n\n");
+		sw.WriteLine(sb.ToString());
+	}
+	#endregion
 }
 

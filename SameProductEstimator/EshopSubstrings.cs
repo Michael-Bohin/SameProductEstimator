@@ -19,7 +19,7 @@ internal class EshopSubstrings
 		string[] nameParts = product.Name.Split(' ');
 
 		foreach(string part in nameParts)
-			if(part.Length > 1)
+			if(part.Length > 2)
 				AddPartToDictionary(part, product);
 	}
 
