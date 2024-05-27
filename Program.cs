@@ -15,3 +15,6 @@ List<NormalizedProduct> rohlikProducts = ra.GetNormalizedProducts(RuntimeConfig.
 // Parsing Tesco products 
 TescoAdapter ta = new();
 List<NormalizedProduct> tescoProducts = ta.GetNormalizedProducts();
+
+EqualProductsFinder epf = new(kosikProducts, rohlikProducts, tescoProducts);
+epf.SortProbableEqualProducts();
