@@ -10,6 +10,7 @@ internal class EqualProductsFinder
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
 	private const string logginDirectory = "./out/equalProductsFinder/";
+	private const string resultDirectory = "./out/equalProductsFinder/results/";
 
 	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
 	{
@@ -22,7 +23,8 @@ internal class EqualProductsFinder
 
 		WriteLine("Normalized products have been loaded to same product estimator.");
 
-		Directory.CreateDirectory(logginDirectory);	
+		Directory.CreateDirectory(logginDirectory);
+		Directory.CreateDirectory(resultDirectory);
 	}
 
 	private static void AssertAllProductsAreFromSameEshop(List<NormalizedProduct> products, Eshop eshop)
@@ -100,6 +102,8 @@ internal class EqualProductsFinder
 			equalCandidatesFrequencies[equalCandidates.Count]++;
 
 		var equalBySubstringRatio = SortCandidatesBySubstring(product, equalCandidates);
+		LogSortedCandidatesBySubstringSimilarity(product, largerEshop, equalBySubstringRatio);
+
 		var equalByCommonPrefixRatio = SortCandidatesByPrefix(product, equalCandidates);
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
 
@@ -142,21 +146,71 @@ internal class EqualProductsFinder
 	/// the smaller number of substrings of both products.
 	/// 
 	/// Output:
-	/// 
-	/// 
+	/// Sorted list of equal candidates from larger eshop of normalized product of smaller eshop. 
+	/// Sorted by substrings similarity.
 	/// 
 	/// </summary>
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
 	/// <returns></returns>
-	private static List<NormalizedProduct> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
+	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
-		
-		
-		return new();
+		var sortedCandidates = new List<(double SubstringSimilarity, NormalizedProduct Candidate)>();
+
+		foreach (NormalizedProduct candidate in candidates)
+		{
+			double substringSimilarity = CalculateSubstringSimilarity(product, candidate);
+			sortedCandidates.Add((substringSimilarity, candidate));
+		}
+
+		sortedCandidates.Sort(new CandidateComparer());
+
+		return sortedCandidates;
 	}
 
-	private static List<NormalizedProduct> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
+	private static double CalculateSubstringSimilarity(NormalizedProduct product, NormalizedProduct candidate)
+	{
+		HashSet<string> productSubstrings = GetSubstringsSet(product);
+		HashSet<string> candidateSubstrings = GetSubstringsSet(candidate);
+
+		int sameSubstringsCount = 0;
+		foreach(string substring in productSubstrings)
+			if(candidateSubstrings.Contains(substring))
+				sameSubstringsCount++;
+
+		if(sameSubstringsCount == 0) 
+			throw new ArgumentException("In this part of code, only product with at least one same substring may be called. Critical error in code architecture detected!");
+
+		int minSubstringCount = Math.Min(productSubstrings.Count, candidateSubstrings.Count);	
+
+		return (double)sameSubstringsCount / minSubstringCount;
+	}
+
+	private static HashSet<string> GetSubstringsSet(NormalizedProduct product) => [.. product.InferredData.lowerCaseNameParts];
+
+	/// <summary>
+	/// Input: 
+	/// product - one concrete product from smaller eshop
+	/// candidates - n candidates of equal products from larger eshop
+	/// 
+	/// Foreach pair (product, candidate i) method calculates similarity by common prefix length ratio which is defined as:
+	/// 
+	/// string productName = product.name.RemoveWS().ToLower()
+	/// string candidateName = (candidate i).name.RemoveWS().ToLower()
+	/// common prefix similarity = CommonPrefixLength( productName,  candidateName) / Math.Min(productName.Length, candidateName.Length)
+	/// 
+	/// In words, we first parse the names by removing whitespaces and make all characters lower case. 
+	/// Than we divide the length of common prefix by smaller length out of both names.
+	/// 
+	/// Output:
+	/// Sorted list of equal candidates from larger eshop of normalized product of smaller eshop. 
+	/// Sorted by  common prefix similarity.
+	///
+	/// </summary>
+	/// <param name="product"></param>
+	/// <param name="candidates"></param>
+	/// <returns></returns>
+	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
 		/// work to do
 
@@ -205,6 +259,24 @@ internal class EqualProductsFinder
 	}
 
 	private static string FormatWithSpaces(int number) => number.ToString("n0", CultureInfo.InvariantCulture).Replace(",", " ");
+
+	private static int substringResults = 0;
+	private static void LogSortedCandidatesBySubstringSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
+	{
+		Eshop largerName = largerEshop.Products.First().Eshop;
+
+		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/";
+		Directory.CreateDirectory(directory);
+
+		using StreamWriter sw = new($"{directory}{++substringResults}.txt");
+
+		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
+
+		foreach ((double substringSimilarity, NormalizedProduct candidate) in sortedCandidates)
+		{
+			sw.WriteLine($"{substringSimilarity:f4} {candidate.Name} {candidate.URL}");
+		}
+	}
 
 	#endregion
 }
