@@ -7,6 +7,10 @@ internal class EqualProductsFinder
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
 
+	private Dictionary<string, List<NormalizedProduct>> KosikSubstrings;
+	private Dictionary<string, List<NormalizedProduct>> RohlikSubstrings;
+	private Dictionary<string, List<NormalizedProduct>> TescoSubstrings;
+
 	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
 	{
 		AssertAllProductsAreFromSameEshop(kosikProducts, Eshop.Kosik);
@@ -26,9 +30,27 @@ internal class EqualProductsFinder
 				throw new ArgumentException($"Product is expected to be normalized from eshop {eshop}, but instead it is from {product.Eshop}.");
 	}
 
+	/// <summary>
+	/// 1. Foreach eshop creates dictionaries substrings in names to list of references of products
+	/// 2. Foreach eshop pair
+	/// 3.		For eshop e with less products 
+	/// 4.			For each product in eshop e
+	/// 5.				Creates & saves sorted list of most probable equal products
+	/// </summary>
 	public void SortProbableEqualProducts()
 	{
+		EshopSubstrings kosikDict = new(KosikProducts);
+		EshopSubstrings rohlikDict = new(RohlikProducts);
+		EshopSubstrings tescoDict = new(TescoProducts);
 
+		//GenerateMostProbableEqualProducts();
 	}
+
+	/*private void CreateSubstringsDictionaries()
+	{
+		/// work to do 
+	}
+
+	private void GenerateMostProbableEqualProducts();*/
 }
 
