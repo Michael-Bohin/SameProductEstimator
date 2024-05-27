@@ -117,6 +117,7 @@ internal partial class EqualProductsFinder
 
 		SortCandidatesBySubstring(product, equalCandidates, largerEshop);
 		SortCandidatesByPrefix(product, equalCandidates, largerEshop);
+		SortCandidatesByLongestCommonSubsequence(product, equalCandidates, largerEshop);
 
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
 	}
@@ -259,6 +260,42 @@ internal partial class EqualProductsFinder
 		return prefixLength;
 	}
 
+	/// <summary>
+	/// Input: 
+	/// product - one concrete product from smaller eshop
+	/// candidates - n candidates of equal products from larger eshop
+	/// 
+	/// Foreach pair (product, candidate i) method calculates similarity by longest common subsequence ratio which is defined as:
+	/// 
+	/// LCS ratio = LCS length / Min( product.name.RemoveWS().Length, candidate.name.RemoveWS().Length )
+	/// 
+	/// In words, we take the length of LCS of parsed product names and divide with 
+	/// the smaller number of substrings of both products.
+	/// 
+	/// Output:
+	/// Sorted list of equal candidates from larger eshop of normalized product of smaller eshop. 
+	/// Sorted by substrings similarity.
+	/// 
+	/// </summary>
+	/// <param name="product"></param>
+	/// <param name="candidates"></param>
+	/// <returns></returns>
+	private static void SortCandidatesByLongestCommonSubsequence(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
+	{
+		var sortedCandidates = SortCandidates(product, candidates, CalculateLCS);
+		LogSortedCandidates("LongestCommonSubsequenceSimilarity", ref LCSResults, product, largerEshop, sortedCandidates);
+	}
+
+	private static double CalculateLCS(NormalizedProduct product, NormalizedProduct candidate)
+	{
+		string parsedProductName = RemoveWS(product.Name).ToLower();
+		string parsedCandidateName = RemoveWS(candidate.Name).ToLower();
+
+		int LCS = LCSFinder.LongestCommonSubsequence(parsedProductName, parsedCandidateName);
+
+		return (double)LCS / Math.Min(parsedProductName.Length, parsedCandidateName.Length);
+	}
+
 	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
 		/// work to do
@@ -307,6 +344,7 @@ internal partial class EqualProductsFinder
 
 	private static int substringResults = 0;
 	private static int prefixResults = 0;
+	private static int LCSResults = 0;
 
 	private static void LogSortedCandidates(string similarityType, ref int resultsCounter, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
 	{
