@@ -103,15 +103,10 @@ internal partial class EqualProductsFinder
 		if(!equalCandidatesFrequencies.TryAdd(equalCandidates.Count, 1))
 			equalCandidatesFrequencies[equalCandidates.Count]++;
 
-		var equalBySubstringRatio = SortCandidatesBySubstring(product, equalCandidates);
-		LogSortedCandidatesBySubstringSimilarity(product, largerEshop, equalBySubstringRatio);
-
-		var equalByCommonPrefixRatio = SortCandidatesByPrefix(product, equalCandidates);
-		LogSortedCandidatesByPrefixSimilarity(product, largerEshop, equalByCommonPrefixRatio);
-
+		SortCandidatesBySubstring(product, equalCandidates, largerEshop);
+		SortCandidatesByPrefix(product, equalCandidates, largerEshop);
 
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
-
 	}
 
 	/// <summary>
@@ -158,9 +153,10 @@ internal partial class EqualProductsFinder
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
 	/// <returns></returns>
-	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
+	private static void SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
-		return SortCandidates(product, candidates, CalculateSubstringSimilarity);
+		var sortedCandidates = SortCandidates(product, candidates, CalculateSubstringSimilarity);
+		LogSortedCandidates("substringSimilarity", ref substringResults, product, largerEshop, sortedCandidates);
 	}
 
 	private static List<(double Similarity, NormalizedProduct Candidate)> SortCandidates(NormalizedProduct product, HashSet<NormalizedProduct> candidates, Func<NormalizedProduct, NormalizedProduct, double> calculateSimilarity)
@@ -215,9 +211,10 @@ internal partial class EqualProductsFinder
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
 	/// <returns></returns>
-	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
+	private static void SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
-		return SortCandidates(product, candidates, CalculatePrefixSimilarity);
+		var sortedCandidates = SortCandidates(product, candidates, CalculatePrefixSimilarity);
+		LogSortedCandidates("prefixSimilarity", ref prefixResults, product, largerEshop, sortedCandidates);
 	}
 
 	private static double CalculatePrefixSimilarity(NormalizedProduct product, NormalizedProduct candidate)
@@ -298,16 +295,6 @@ internal partial class EqualProductsFinder
 
 	private static int substringResults = 0;
 	private static int prefixResults = 0;
-
-	private static void LogSortedCandidatesBySubstringSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
-	{
-		LogSortedCandidates("substringSimilarity", ref substringResults, product, largerEshop, sortedCandidates);
-	}
-
-	private static void LogSortedCandidatesByPrefixSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
-	{
-		LogSortedCandidates("prefixSimilarity", ref prefixResults, product, largerEshop, sortedCandidates);
-	}
 
 	private static void LogSortedCandidates(string similarityType, ref int resultsCounter, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
 	{
