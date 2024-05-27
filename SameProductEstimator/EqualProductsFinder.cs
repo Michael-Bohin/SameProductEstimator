@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -159,16 +160,16 @@ internal partial class EqualProductsFinder
 	/// <returns></returns>
 	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
-		var sortedCandidates = new List<(double SubstringSimilarity, NormalizedProduct Candidate)>();
+		return SortCandidates(product, candidates, CalculateSubstringSimilarity);
+	}
 
-		foreach (NormalizedProduct candidate in candidates)
-		{
-			double substringSimilarity = CalculateSubstringSimilarity(product, candidate);
-			sortedCandidates.Add((substringSimilarity, candidate));
-		}
+	private static List<(double Similarity, NormalizedProduct Candidate)> SortCandidates(NormalizedProduct product, HashSet<NormalizedProduct> candidates, Func<NormalizedProduct, NormalizedProduct, double> calculateSimilarity)
+	{
+		var sortedCandidates = candidates.Select(candidate =>
+			(Similarity: calculateSimilarity(product, candidate), Candidate: candidate))
+			.ToList();
 
 		sortedCandidates.Sort(new CandidateComparer());
-
 		return sortedCandidates;
 	}
 
@@ -216,17 +217,7 @@ internal partial class EqualProductsFinder
 	/// <returns></returns>
 	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
-		var sortedCandidates = new List<(double SubstringSimilarity, NormalizedProduct Candidate)>();
-
-		foreach (NormalizedProduct candidate in candidates)
-		{
-			double substringSimilarity = CalculatePrefixSimilarity(product, candidate);
-			sortedCandidates.Add((substringSimilarity, candidate));
-		}
-
-		sortedCandidates.Sort(new CandidateComparer());
-
-		return sortedCandidates;
+		return SortCandidates(product, candidates, CalculatePrefixSimilarity);
 	}
 
 	private static double CalculatePrefixSimilarity(NormalizedProduct product, NormalizedProduct candidate)
@@ -258,7 +249,6 @@ internal partial class EqualProductsFinder
 
 		return prefixLength;
 	}
-
 
 	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
