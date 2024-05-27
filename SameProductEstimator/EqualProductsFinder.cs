@@ -303,43 +303,34 @@ internal partial class EqualProductsFinder
 
 	private static string FormatWithSpaces(int number) => number.ToString("n0", CultureInfo.InvariantCulture).Replace(",", " ");
 
-	private static int substringResults = 0;
-	private static void LogSortedCandidatesBySubstringSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
-	{
-		Eshop largerName = largerEshop.Products.First().Eshop;
-
-		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/substringSimilarity/";
-		Directory.CreateDirectory(directory);
-
-		using StreamWriter sw = new($"{directory}{++substringResults}.txt");
-
-		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
-
-		foreach ((double substringSimilarity, NormalizedProduct candidate) in sortedCandidates)
-		{
-			sw.WriteLine($"{substringSimilarity:f4} {candidate.Name} {candidate.URL}");
-		}
-	}
-
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex MathAllWhiteSpaceChars();
 
+	private static int substringResults = 0;
 	private static int prefixResults = 0;
+
+	private static void LogSortedCandidatesBySubstringSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
+	{
+		LogSortedCandidates("substringSimilarity", ref substringResults, product, largerEshop, sortedCandidates);
+	}
 
 	private static void LogSortedCandidatesByPrefixSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
 	{
-		Eshop largerName = largerEshop.Products.First().Eshop;
+		LogSortedCandidates("prefixSimilarity", ref prefixResults, product, largerEshop, sortedCandidates);
+	}
 
-		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/prefixSimilarity/";
+	private static void LogSortedCandidates(string similarityType, ref int resultsCounter, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
+	{
+		Eshop largerName = largerEshop.Products.First().Eshop;
+		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/{similarityType}/";
 		Directory.CreateDirectory(directory);
 
-		using StreamWriter sw = new($"{directory}{++prefixResults}.txt");
-
+		using StreamWriter sw = new($"{directory}{++resultsCounter}.txt");
 		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
 
-		foreach ((double substringSimilarity, NormalizedProduct candidate) in sortedCandidates)
+		foreach ((double similarity, NormalizedProduct candidate) in sortedCandidates)
 		{
-			sw.WriteLine($"{substringSimilarity:f4} {candidate.Name} {candidate.URL}");
+			sw.WriteLine($"{similarity:f4}\t{candidate.Name}\t{candidate.URL}");
 		}
 	}
 
