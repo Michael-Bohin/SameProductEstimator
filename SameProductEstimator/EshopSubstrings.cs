@@ -27,10 +27,10 @@ internal class EshopSubstrings
 	{
 		if(SubstringsToProducts.ContainsKey(part))
 		{
-			SubstringsToProducts[part] = new() { product };
+			SubstringsToProducts[part].Add(product);
 		} else
 		{
-			SubstringsToProducts[part].Add(product);
+			SubstringsToProducts[part] = new() { product }; 
 		}
 	}
 
@@ -47,5 +47,6 @@ internal class EshopSubstrings
 
 		WriteLine($"Sum of all product references {counter}");
 		WriteLine($"Average references per one substring {(double)counter/SubstringsToProducts.Count:f2}");
+		WriteLine($"Average number of ws split substrings per product {(double)counter/Products.Count:f2}\n");
     }
 }
