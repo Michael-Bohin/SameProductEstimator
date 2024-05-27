@@ -15,12 +15,12 @@ List<NormalizedProduct> kosikProducts = ka.GetNormalizedProducts();
 RohlikAdapter ra = new();
 List<NormalizedProduct> rohlikProducts = ra.GetNormalizedProducts(RuntimeConfig.zipExtractPath);
 
-// Parsing Tesco products 
+// Parsing Tesco products
 TescoAdapter ta = new();
 List<NormalizedProduct> tescoProducts = ta.GetNormalizedProducts();
 
 EqualProductsFinder epf = new(kosikProducts, rohlikProducts, tescoProducts);
-epf.SortProbableEqualProducts();
+await epf.SortProbableEqualProductsAsync();
 
 sw.Stop();
 

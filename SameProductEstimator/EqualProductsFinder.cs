@@ -43,7 +43,7 @@ internal partial class EqualProductsFinder
 	/// 4.			For each product in eshop e
 	/// 5.				Creates & saves sorted list of most probable equal products
 	/// </summary>
-	public void SortProbableEqualProducts()
+	/*public void SortProbableEqualProducts()
 	{
 		EshopSubstrings kosikDict = new(KosikProducts);
 		EshopSubstrings rohlikDict = new(RohlikProducts);
@@ -52,6 +52,18 @@ internal partial class EqualProductsFinder
 		GenerateMostProbableEqualProducts(kosikDict, rohlikDict);
 		GenerateMostProbableEqualProducts(kosikDict, tescoDict);
 		GenerateMostProbableEqualProducts(rohlikDict, tescoDict);
+	}*/
+	public async Task SortProbableEqualProductsAsync()
+	{
+		EshopSubstrings kosikDict = new(KosikProducts);
+		EshopSubstrings rohlikDict = new(RohlikProducts);
+		EshopSubstrings tescoDict = new(TescoProducts);
+
+		Task task1 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, rohlikDict));
+		Task task2 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, tescoDict));
+		Task task3 = Task.Run(() => GenerateMostProbableEqualProducts(rohlikDict, tescoDict));
+
+		await Task.WhenAll(task1, task2, task3);
 	}
 
 	/// <summary>
