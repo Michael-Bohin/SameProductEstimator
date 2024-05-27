@@ -47,6 +47,6 @@ internal class EshopSubstrings
 
 		WriteLine($"Sum of all product references {counter}");
 		WriteLine($"Average references per one substring {(double)counter/SubstringsToProducts.Count:f2}");
-		WriteLine($"Average number of ws split substrings per product {(double)counter/Products.Count:f2}\n");
+		WriteLine($"Average number of ws split substrings per product {(double)SubstringsToProducts.Count / Products.Count:f2}\n");
     }
 }
