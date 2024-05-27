@@ -3,6 +3,9 @@ using SameProductEstimator;
 using SameProductEstimator.Kosik;
 using SameProductEstimator.Rohlik;
 using SameProductEstimator.Tesco;
+using System.Diagnostics;
+
+Stopwatch sw = Stopwatch.StartNew();
 
 // Parsing Kosik products
 KosikAdapter ka = new();
@@ -18,3 +21,7 @@ List<NormalizedProduct> tescoProducts = ta.GetNormalizedProducts();
 
 EqualProductsFinder epf = new(kosikProducts, rohlikProducts, tescoProducts);
 epf.SortProbableEqualProducts();
+
+sw.Stop();
+
+WriteLine($"Program ran for {sw.ElapsedMilliseconds / 1_000} seconds and {sw.ElapsedMilliseconds % 1_000} ms.");

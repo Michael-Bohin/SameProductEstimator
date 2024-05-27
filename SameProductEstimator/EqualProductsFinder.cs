@@ -1,10 +1,11 @@
 ﻿
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SameProductEstimator;
 
-internal class EqualProductsFinder
+internal partial class EqualProductsFinder
 {
 	public readonly List<NormalizedProduct> KosikProducts;
 	public readonly List<NormalizedProduct> RohlikProducts;
@@ -105,6 +106,9 @@ internal class EqualProductsFinder
 		LogSortedCandidatesBySubstringSimilarity(product, largerEshop, equalBySubstringRatio);
 
 		var equalByCommonPrefixRatio = SortCandidatesByPrefix(product, equalCandidates);
+		LogSortedCandidatesByPrefixSimilarity(product, largerEshop, equalByCommonPrefixRatio);
+
+
 		var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
 
 	}
@@ -212,10 +216,49 @@ internal class EqualProductsFinder
 	/// <returns></returns>
 	private static List<(double SubstringSimilarity, NormalizedProduct Candidate)> SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
-		/// work to do
+		var sortedCandidates = new List<(double SubstringSimilarity, NormalizedProduct Candidate)>();
 
-		return new();
+		foreach (NormalizedProduct candidate in candidates)
+		{
+			double substringSimilarity = CalculatePrefixSimilarity(product, candidate);
+			sortedCandidates.Add((substringSimilarity, candidate));
+		}
+
+		sortedCandidates.Sort(new CandidateComparer());
+
+		return sortedCandidates;
 	}
+
+	private static double CalculatePrefixSimilarity(NormalizedProduct product, NormalizedProduct candidate)
+	{
+		string parsedProductName = RemoveWS(product.Name).ToLower();	
+		string parsedCandidateName = RemoveWS(candidate.Name).ToLower();
+
+		int commonPrefixLength = CommonPrefixLength(parsedProductName, parsedCandidateName);
+
+		return (double)commonPrefixLength / Math.Min(parsedProductName.Length, parsedCandidateName.Length);
+	}
+
+	private static string RemoveWS(string s) => MathAllWhiteSpaceChars().Replace(s, "");
+
+	private static int CommonPrefixLength(string parsedProductName, string parsedCandidateName)
+	{
+		if (parsedProductName == null || parsedCandidateName == null || parsedProductName.Length == 0 || parsedCandidateName.Length == 0)
+			throw new ArgumentException("Critical error in code architecture detected. Parsed product names at this point main not be null or empty.");
+
+		int prefixLength = 0;
+		for (int i = 0; i < Math.Min(parsedProductName.Length, parsedCandidateName.Length); i++)
+			if (parsedProductName[i] == parsedCandidateName[i])
+			{
+				prefixLength++;
+			} else
+			{
+				break;
+			}
+
+		return prefixLength;
+	}
+
 
 	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
 	{
@@ -265,10 +308,32 @@ internal class EqualProductsFinder
 	{
 		Eshop largerName = largerEshop.Products.First().Eshop;
 
-		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/";
+		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/substringSimilarity/";
 		Directory.CreateDirectory(directory);
 
 		using StreamWriter sw = new($"{directory}{++substringResults}.txt");
+
+		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
+
+		foreach ((double substringSimilarity, NormalizedProduct candidate) in sortedCandidates)
+		{
+			sw.WriteLine($"{substringSimilarity:f4} {candidate.Name} {candidate.URL}");
+		}
+	}
+
+	[GeneratedRegex(@"\s+")]
+	private static partial Regex MathAllWhiteSpaceChars();
+
+	private static int prefixResults = 0;
+
+	private static void LogSortedCandidatesByPrefixSimilarity(NormalizedProduct product, EshopSubstrings largerEshop, List<(double SubstringSimilarity, NormalizedProduct Candidate)> sortedCandidates)
+	{
+		Eshop largerName = largerEshop.Products.First().Eshop;
+
+		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/prefixSimilarity/";
+		Directory.CreateDirectory(directory);
+
+		using StreamWriter sw = new($"{directory}{++prefixResults}.txt");
 
 		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
 
