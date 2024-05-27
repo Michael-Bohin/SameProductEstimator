@@ -10,6 +10,8 @@ internal class EshopSubstrings
 		Products = products;
 		foreach(var product in products) 
 			AddSubstringsToDictionary(product);
+
+		ConsoleLogDictionarySizeStats();
 	}
 
 	private void AddSubstringsToDictionary(NormalizedProduct product)
@@ -31,4 +33,19 @@ internal class EshopSubstrings
 			SubstringsToProducts[part].Add(product);
 		}
 	}
+
+	private void ConsoleLogDictionarySizeStats()
+	{
+		WriteLine($"Constructed dictionary of product names substrings to list of product references of eshop {Products[0].Eshop}");
+		WriteLine($"Dictionary contains {SubstringsToProducts.Count} keys.");
+		
+		int counter = 0;
+        foreach (List<NormalizedProduct> productsWithSameSubstrings in SubstringsToProducts.Values)
+		{
+			counter += productsWithSameSubstrings.Count;    
+        }
+
+		WriteLine($"Sum of all product references {counter}");
+		WriteLine($"Average references per one substring {(double)counter/SubstringsToProducts.Count:f2}");
+    }
 }
