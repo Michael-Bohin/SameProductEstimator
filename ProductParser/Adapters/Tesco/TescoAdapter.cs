@@ -10,23 +10,27 @@ internal class TescoAdapter : Adapter<TescoJsonProduct>
 
 	protected override Eshop GetEshopType() => Eshop.Tesco;
 
-	protected override bool TryGetNormalized(TescoJsonProduct tescoProduct, out NormalizedProduct normalizedProduct)
+	protected override bool AnyCriticalPropertyIsNull(TescoJsonProduct tescoProduct)
 	{
-		if (AnyCriticalPropertyIsNull(tescoProduct))
-		{
-			normalizedProduct = null!;
-			return false;
-		}
+		if (tescoProduct is null || tescoProduct?.product is null)
+			return true;
 
 		Product p = tescoProduct.product;
-		
+
+		return p?.title is null || p?.id is null || p?.price is null;
+	}
+
+	protected override NormalizedProduct UnsafeParseNormalizedProduct(TescoJsonProduct tescoProduct) 
+	{
+		Product p = tescoProduct.product;
+
 		string name = p.title;
 		string url = $"https://nakup.itesco.cz/groceries/cs-CZ/products/{p.id}";
 		decimal price = p.price;
 
-		normalizedProduct = new(name, url, price, Eshop.Tesco) {
+		NormalizedProduct normalizedProduct = new(name, url, price, Eshop.Tesco) {
 			Producer = null,  // information is absent in the webscraped data
-			Description = p?.shortDescription, 
+			Description = p?.shortDescription,
 			StorageConditions = null, // information is absent in the webscraped data
 			UnitType = ParseUnitType(tescoProduct!),
 			Pieces = 1,
@@ -35,17 +39,7 @@ internal class TescoAdapter : Adapter<TescoJsonProduct>
 			NutritionalValues = null // nutricni hodnoty je treba doimplementovat
 		};
 
-		return true;
-	}
-
-	private static bool AnyCriticalPropertyIsNull(TescoJsonProduct product)
-	{
-		if (product is null || product?.product is null)
-			return true;
-
-		Product p = product.product;
-
-		return p?.title is null || p?.id is null || p?.price is null;
+		return normalizedProduct;
 	}
 
 	private UnitType? ParseUnitType(TescoJsonProduct product)

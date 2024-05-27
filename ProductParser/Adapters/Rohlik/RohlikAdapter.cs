@@ -10,19 +10,23 @@ internal class RohlikAdapter : Adapter<RohlikJsonProduct>
 
 	protected override Eshop GetEshopType() => Eshop.Rohlik;
 
-	protected override bool TryGetNormalized(RohlikJsonProduct rohlikProduct, out NormalizedProduct normalizedProduct)
+	protected override bool AnyCriticalPropertyIsNull(RohlikJsonProduct product)
 	{
-		if (AnyCriticalPropertyIsNull(rohlikProduct))
-		{
-			normalizedProduct = null!;
-			return false;
-		}
+		if (product is null || product?.name is null || product?.url is null || product?.price is null)
+			return true;
 
+		Price p = product.price;
+
+		return p?.amount is null || p?.currency is null;
+	}
+
+	protected override NormalizedProduct UnsafeParseNormalizedProduct(RohlikJsonProduct rohlikProduct)
+	{
 		string name = rohlikProduct.name;
 		string url = rohlikProduct.url;
 		decimal price = rohlikProduct.price.amount;
 
-		normalizedProduct = new(name, url, price, Eshop.Rohlik) {
+		NormalizedProduct normalizedProduct = new(name, url, price, Eshop.Rohlik) {
 			Producer = rohlikProduct?.brand,
 			Description = rohlikProduct?.htmlDescription, // zde bude potreba vyzkum jakym regexpem prevest z html na porovnatelny text
 			StorageConditions = null, // zde bude potreba vyzkum jakym regexpem vytahnout skladovaci podminky z htmlDescription, rohlik tuhle informaci nema v samostatnem fieldu 
@@ -33,17 +37,7 @@ internal class RohlikAdapter : Adapter<RohlikJsonProduct>
 			NutritionalValues = null // nutricni hodnoty je treba doimplementovat
 		};
 
-		return true;
-	}
-
-	private static bool AnyCriticalPropertyIsNull(RohlikJsonProduct product)
-	{
-		if (product is null || product?.name is null || product?.url is null || product?.price is null)
-			return true;
-
-		Price p = product.price;
-
-		return p?.amount is null || p?.currency is null;
+		return normalizedProduct;
 	}
 
 	private static int kusy, vaha, objem, other;

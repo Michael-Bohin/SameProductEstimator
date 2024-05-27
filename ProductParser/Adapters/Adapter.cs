@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+﻿using SameProductEstimator.Tesco;
+using System.Text.Json;
 
 namespace SameProductEstimator;
 
 internal abstract class Adapter<T>
 {
-	protected abstract bool TryGetNormalized(T jsonProduct, out NormalizedProduct normalizedProduct);
+	protected abstract bool AnyCriticalPropertyIsNull(T product);
+
+	protected abstract NormalizedProduct UnsafeParseNormalizedProduct(T product);
 
 	protected abstract string GetNameOf();
 
@@ -29,7 +32,6 @@ internal abstract class Adapter<T>
 		List<T> jsonProducts = JsonSerializer.Deserialize<List<T>>(json)!;
 
 		List<NormalizedProduct> normalizedProducts = [];
-
 		List<T> invalidJsonProducts = [];
 
 		foreach (T jsonProduct in jsonProducts)
@@ -52,5 +54,18 @@ internal abstract class Adapter<T>
 		ProductParserLogger.Log(normalizedProducts, GetEshopType());
 
 		return normalizedProducts;
+	}
+
+	protected bool TryGetNormalized(T product, out NormalizedProduct normalizedProduct)
+	{
+		if (AnyCriticalPropertyIsNull(product))
+		{
+			normalizedProduct = null!;
+			return false;
+		}
+
+		normalizedProduct = UnsafeParseNormalizedProduct(product);
+
+		return true;
 	}
 }
