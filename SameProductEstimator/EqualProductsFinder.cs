@@ -76,9 +76,9 @@ internal partial class EqualProductsFinder
 		foreach (var (Product, Candidates) in equalCandidatesOfProducts)
 		{
 			SortCandidatesBySubstring(Product, Candidates, largerEshop);
-			SortCandidatesByPrefix(Product, Candidates, largerEshop);
+			/*SortCandidatesByPrefix(Product, Candidates, largerEshop);
 			SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);
-			SortCandidatesByEditDistance(Product, Candidates, largerEshop);
+			SortCandidatesByEditDistance(Product, Candidates, largerEshop);*/
 		}
 	}
 
@@ -378,8 +378,8 @@ internal partial class EqualProductsFinder
 		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/{similarityType}/";
 		Directory.CreateDirectory(directory);
 
-		string fileName = ConstructFileName(product);
-		using StreamWriter sw = new($"{directory}{fileName}.txt");
+		string uniqueFilePath = EnsureUniqueFilePath(directory, product.InferredData.uniqueFileName);
+		using StreamWriter sw = new(uniqueFilePath);
 		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
 
 		foreach ((double similarity, NormalizedProduct candidate) in sortedCandidates)
@@ -388,8 +388,17 @@ internal partial class EqualProductsFinder
 		}
 	}
 
-	// this method expects invariant that all product names are unique
-	private static string ConstructFileName(NormalizedProduct product) => new string(product.Name.Where(char.IsLetter).ToArray());
+	public static string EnsureUniqueFilePath(string directory, string filename)
+	{
+		string filePath = Path.Combine(directory, filename + ".txt");
+		while (File.Exists(filePath))
+		{
+			Random rand = new((int)DateTime.Now.Ticks & 0x0000FFFF); // seed random with current time, put it inside the while loop since close 100% of time file name will not exist
+			int randomNumber = rand.Next();
+			filePath = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(filename)}_{randomNumber}.txt");
+		}
+		return filePath;
+	}
 
 	#endregion
 }

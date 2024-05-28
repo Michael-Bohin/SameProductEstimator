@@ -1,4 +1,10 @@
-﻿using System.Text;
+﻿using SameProductEstimator.Kosik;
+using SameProductEstimator.Rohlik;
+using SameProductEstimator;
+using System;
+using System.Globalization;
+using System.Text;
+using System.Xml.Linq;
 
 namespace SameProductEstimator;
 
@@ -40,27 +46,6 @@ internal class NormalizedProduct
 		InferredData = new(name);
 	}
 
-	public override string ToString()
-	{
-		StringBuilder sb = new();
-		sb.AppendLine(Name);
-		sb.AppendLine($"{Price}");
-		sb.AppendLine($"{Eshop}");
-		sb.AppendLine(URL);
-		sb.AppendLine(Description);
-		sb.AppendLine(Producer);
-		sb.AppendLine(StorageConditions + "\n");
-
-		sb.AppendLine($"{UnitType}");
-		sb.AppendLine($"{Pieces}");
-		sb.AppendLine($"{Weight}");
-		sb.AppendLine($"{Volume}");
-
-		sb.AppendLine($"{NutritionalValues}");
-
-		// nutritional values are yet omitted..	
-		return sb.ToString();
-	}
 	private static string AssertStringIsNotNullOrEmpty(string s)
 	{
 		if(string.IsNullOrEmpty(s))
@@ -101,6 +86,28 @@ internal class NormalizedProduct
 		}
 		UnitType = SameProductEstimator.UnitType.Volume;
 		Volume = volume;
+	}
+
+	public override string ToString()
+	{
+		StringBuilder sb = new();
+		sb.AppendLine(Name);
+		sb.AppendLine($"{Price}");
+		sb.AppendLine($"{Eshop}");
+		sb.AppendLine(URL);
+		sb.AppendLine(Description);
+		sb.AppendLine(Producer);
+		sb.AppendLine(StorageConditions + "\n");
+
+		sb.AppendLine($"{UnitType}");
+		sb.AppendLine($"{Pieces}");
+		sb.AppendLine($"{Weight}");
+		sb.AppendLine($"{Volume}");
+
+		sb.AppendLine($"{NutritionalValues}");
+
+		// nutritional values are yet omitted..	
+		return sb.ToString();
 	}
 }
 
