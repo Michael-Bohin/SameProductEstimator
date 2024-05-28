@@ -10,8 +10,8 @@ internal partial class EqualProductsFinder
 	public readonly List<NormalizedProduct> KosikProducts;
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
-	private const string logginDirectory = "./out/equalProductsFinder/";
-	private const string resultDirectory = "./out/equalProductsFinder/results/";
+	private const string logginDirectory = "./out/equalProductsFinder/", resultDirectory = "./out/equalProductsFinder/results/";
+	private static int substringResults = 0, prefixResults = 0, LCSResults = 0, lengthAdjustedEditationDistanceResults = 0;
 
 	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
 	{
@@ -70,7 +70,7 @@ internal partial class EqualProductsFinder
 	{
 		EshopSubstrings smallerEshop = eshopA.Products.Count < eshopB.Products.Count ? eshopA : eshopB;
 		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
-		CreateLogginDirectory(smallerEshop, largerEshop);
+		CreateLoggingDirectory(smallerEshop, largerEshop);
 
 		var equalCandidatesOfProducts = FindEqualCandidatesOfProducts(smallerEshop, largerEshop);
 
@@ -79,12 +79,11 @@ internal partial class EqualProductsFinder
 			SortCandidatesBySubstring(Product, Candidates, largerEshop);
 			SortCandidatesByPrefix(Product, Candidates, largerEshop);
 			SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);
-
-			// var equalByEditationDistance = SortCandidatesByEditationDistance(product, equalCandidates);
+			SortCandidatesByEditDistance(Product, Candidates, largerEshop);
 		}
 	}
 
-	private static void CreateLogginDirectory(EshopSubstrings smallerEshop, EshopSubstrings largerEshop)
+	private static void CreateLoggingDirectory(EshopSubstrings smallerEshop, EshopSubstrings largerEshop)
 	{
 		string directoryRoot = $"./out/{smallerEshop.Products[0].Eshop}To{largerEshop.Products[0].Eshop}ProbableEqualProducts/";
 		Directory.CreateDirectory(directoryRoot);
@@ -158,6 +157,7 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
+	/// <param name="largerEshop"></param>
 	/// <returns></returns>
 	private static void SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
@@ -216,6 +216,7 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
+	/// <param name="largerEshop"></param>
 	/// <returns></returns>
 	private static void SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
@@ -272,6 +273,7 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	/// <param name="product"></param>
 	/// <param name="candidates"></param>
+	/// <param name="largerEshop"></param>
 	/// <returns></returns>
 	private static void SortCandidatesByLongestCommonSubsequence(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
@@ -289,11 +291,47 @@ internal partial class EqualProductsFinder
 		return (double)LCS / Math.Min(parsedProductName.Length, parsedCandidateName.Length);
 	}
 
-	private static List<NormalizedProduct> SortCandidatesByEditationDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates)
+	/// <summary>
+	/// Input: 
+	/// product - one concrete product from smaller eshop
+	/// candidates - n candidates of equal products from larger eshop
+	/// 
+	/// Foreach pair (product, candidate i) method calculates similarity by length adjusted editn distance which is defined as:
+	/// 
+	/// string productName = product.name.RemoveWS().ToLower()
+	/// string candidateName = (candidate i).name.RemoveWS().ToLower()
+	/// length adjusted edit distance = EditationDistance(productName, candidateName) - Math.Abs(productName - candidateName)
+	/// 
+	/// Output:
+	/// Sorted list of equal candidates from larger eshop of normalized product of smaller eshop. 
+	/// Sorted by length adjusted editation distance.
+	/// 
+	/// </summary>
+	/// <param name="product"></param>
+	/// <param name="candidates"></param>
+	/// <param name="largerEshop"></param>
+	/// <returns></returns>
+	private static void SortCandidatesByEditDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
-		/// work to do
+		var sortedCandidates = SortCandidates(product, candidates, CalculateLengthAdjustedEditDistance);
+		LogSortedCandidates("LengthAdjustedEditationDistance", ref LCSResults, product, largerEshop, sortedCandidates);
+	}
 
-		return new();
+	private static double CalculateLengthAdjustedEditDistance(NormalizedProduct product, NormalizedProduct candidate)
+	{
+		string parsedProductName = RemoveWS(product.Name).ToLower();
+		string parsedCandidateName = RemoveWS(candidate.Name).ToLower();
+
+		int lengthAdjustedEditDistance = LevenshteinDistance.LengthAdjustedEditDistance(parsedProductName, parsedCandidateName);
+
+		// podilem k delce z minima delky stringu hodnotu zobrazime do oboru hodnot <0,1>
+		// to proto, aby slo silu jistoty porovavat s ostatnimy metrikami
+		// navic ji predtim odecteme od minima delky z obou stringu, to proto aby smer razeni 
+		// nejpriortnejsich kandidatu byl klesajici -> ve stejnem smeru jako ostatni
+		// napr LCS cim delsi, tim prioritnejsi atp. v pripade ciste edit distance je nejriopritnejsi 0, je tedy praktictejsihi hodnotu obrati
+
+		int minLength = Math.Min(parsedProductName.Length, parsedCandidateName.Length);
+		return (double)(minLength - lengthAdjustedEditDistance) / minLength;
 	}
 
 	#region Logging 
@@ -334,10 +372,6 @@ internal partial class EqualProductsFinder
 
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex MathAllWhiteSpaceChars();
-
-	private static int substringResults = 0;
-	private static int prefixResults = 0;
-	private static int LCSResults = 0;
 
 	private static void LogSortedCandidates(string similarityType, ref int resultsCounter, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
 	{
