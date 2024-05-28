@@ -11,7 +11,6 @@ internal partial class EqualProductsFinder
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
 	private const string logginDirectory = "./out/equalProductsFinder/", resultDirectory = "./out/equalProductsFinder/results/";
-	private static int substringResults = 0, prefixResults = 0, LCSResults = 0, lengthAdjustedEditationDistanceResults = 0;
 
 	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
 	{
@@ -162,7 +161,7 @@ internal partial class EqualProductsFinder
 	private static void SortCandidatesBySubstring(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
 		var sortedCandidates = SortCandidates(product, candidates, CalculateSubstringSimilarity);
-		LogSortedCandidates("substringSimilarity", ref substringResults, product, largerEshop, sortedCandidates);
+		LogSortedCandidates("substringSimilarity", product, largerEshop, sortedCandidates);
 	}
 
 	private static List<(double Similarity, NormalizedProduct Candidate)> SortCandidates(NormalizedProduct product, HashSet<NormalizedProduct> candidates, Func<NormalizedProduct, NormalizedProduct, double> calculateSimilarity)
@@ -221,7 +220,7 @@ internal partial class EqualProductsFinder
 	private static void SortCandidatesByPrefix(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
 		var sortedCandidates = SortCandidates(product, candidates, CalculatePrefixSimilarity);
-		LogSortedCandidates("prefixSimilarity", ref prefixResults, product, largerEshop, sortedCandidates);
+		LogSortedCandidates("prefixSimilarity", product, largerEshop, sortedCandidates);
 	}
 
 	private static double CalculatePrefixSimilarity(NormalizedProduct product, NormalizedProduct candidate)
@@ -278,7 +277,7 @@ internal partial class EqualProductsFinder
 	private static void SortCandidatesByLongestCommonSubsequence(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
 		var sortedCandidates = SortCandidates(product, candidates, CalculateLCS);
-		LogSortedCandidates("LongestCommonSubsequenceSimilarity", ref LCSResults, product, largerEshop, sortedCandidates);
+		LogSortedCandidates("LongestCommonSubsequenceSimilarity", product, largerEshop, sortedCandidates);
 	}
 
 	private static double CalculateLCS(NormalizedProduct product, NormalizedProduct candidate)
@@ -314,7 +313,7 @@ internal partial class EqualProductsFinder
 	private static void SortCandidatesByEditDistance(NormalizedProduct product, HashSet<NormalizedProduct> candidates, EshopSubstrings largerEshop)
 	{
 		var sortedCandidates = SortCandidates(product, candidates, CalculateLengthAdjustedEditDistance);
-		LogSortedCandidates("LengthAdjustedEditationDistance", ref LCSResults, product, largerEshop, sortedCandidates);
+		LogSortedCandidates("LengthAdjustedEditationDistance", product, largerEshop, sortedCandidates);
 	}
 
 	private static double CalculateLengthAdjustedEditDistance(NormalizedProduct product, NormalizedProduct candidate)
@@ -373,13 +372,14 @@ internal partial class EqualProductsFinder
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex MathAllWhiteSpaceChars();
 
-	private static void LogSortedCandidates(string similarityType, ref int resultsCounter, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
+	private static void LogSortedCandidates(string similarityType, NormalizedProduct product, EshopSubstrings largerEshop, List<(double Similarity, NormalizedProduct Candidate)> sortedCandidates)
 	{
 		Eshop largerName = largerEshop.Products.First().Eshop;
 		string directory = $"{logginDirectory}{product.Eshop}_to_{largerName}/{similarityType}/";
 		Directory.CreateDirectory(directory);
 
-		using StreamWriter sw = new($"{directory}{++resultsCounter}.txt");
+		string fileName = ConstructFileName(product);
+		using StreamWriter sw = new($"{directory}{fileName}.txt");
 		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
 
 		foreach ((double similarity, NormalizedProduct candidate) in sortedCandidates)
@@ -387,6 +387,9 @@ internal partial class EqualProductsFinder
 			sw.WriteLine($"{similarity:f4}\t{candidate.Name}\t{candidate.URL}");
 		}
 	}
+
+	// this method expects invariant that all product names are unique
+	private static string ConstructFileName(NormalizedProduct product) => new string(product.Name.Where(char.IsLetter).ToArray());
 
 	#endregion
 }
