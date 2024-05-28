@@ -75,10 +75,10 @@ internal partial class EqualProductsFinder
 
 		foreach (var (Product, Candidates) in equalCandidatesOfProducts)
 		{
-			SortCandidatesBySubstring(Product, Candidates, largerEshop);
-			/*SortCandidatesByPrefix(Product, Candidates, largerEshop);
-			SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);
-			SortCandidatesByEditDistance(Product, Candidates, largerEshop);*/
+			/*/SortCandidatesBySubstring(Product, Candidates, largerEshop);/**/
+			/**/SortCandidatesByPrefix(Product, Candidates, largerEshop);/**/
+			/*/SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);/**/
+			/*/SortCandidatesByEditDistance(Product, Candidates, largerEshop);/**/
 		}
 	}
 
@@ -225,8 +225,8 @@ internal partial class EqualProductsFinder
 
 	private static double CalculatePrefixSimilarity(NormalizedProduct product, NormalizedProduct candidate)
 	{
-		string parsedProductName = RemoveWS(product.Name).ToLower();	
-		string parsedCandidateName = RemoveWS(candidate.Name).ToLower();
+		string parsedProductName = product.Name.ToLower();	
+		string parsedCandidateName = candidate.Name.ToLower();
 
 		int commonPrefixLength = CommonPrefixLength(parsedProductName, parsedCandidateName);
 
