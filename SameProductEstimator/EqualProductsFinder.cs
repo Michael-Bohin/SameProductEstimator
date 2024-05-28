@@ -379,13 +379,17 @@ internal partial class EqualProductsFinder
 		Directory.CreateDirectory(directory);
 
 		string uniqueFilePath = EnsureUniqueFilePath(directory, product.InferredData.uniqueFileName);
-		using StreamWriter sw = new(uniqueFilePath);
-		sw.WriteLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
+
+		StringBuilder sb = new();
+		sb.AppendLine($"Equal candidates of {product.Name}, to be found at url: {product.URL}");
 
 		foreach ((double similarity, NormalizedProduct candidate) in sortedCandidates)
 		{
-			sw.WriteLine($"{similarity:f4}\t{candidate.Name}\t{candidate.URL}");
+			sb.AppendLine($"{similarity:f4}\t{candidate.Name}\t{candidate.URL}");
 		}
+
+		using StreamWriter sw = new(uniqueFilePath);
+		sw.WriteLine(sb.ToString());
 	}
 
 	public static string EnsureUniqueFilePath(string directory, string filename)
