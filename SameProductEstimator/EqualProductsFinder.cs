@@ -73,12 +73,14 @@ internal partial class EqualProductsFinder
 
 		var equalCandidatesOfProducts = FindEqualCandidatesOfProducts(smallerEshop, largerEshop);
 
-		foreach (var (Product, Candidates) in equalCandidatesOfProducts)
+		int min = Math.Min(RuntimeConfig.LimitProcessedProducts, equalCandidatesOfProducts.Count);
+		for (int i = 0; i < min; i++)
 		{
-			/*/SortCandidatesBySubstring(Product, Candidates, largerEshop);/**/
+			var(Product, Candidates) = equalCandidatesOfProducts[i];
+			/**/SortCandidatesBySubstring(Product, Candidates, largerEshop);/**/
 			/**/SortCandidatesByPrefix(Product, Candidates, largerEshop);/**/
-			/*/SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);/**/
-			/*/SortCandidatesByEditDistance(Product, Candidates, largerEshop);/**/
+			/**/SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);/**/
+			/**/SortCandidatesByEditDistance(Product, Candidates, largerEshop);/**/
 		}
 	}
 

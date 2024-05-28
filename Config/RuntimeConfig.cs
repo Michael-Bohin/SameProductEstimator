@@ -9,4 +9,6 @@ internal class RuntimeConfig
 	tescoProductDataRelativePath = "./../../../ProductParser/ScrapedEshopData/tescoProductData.json",
 
 	zipExtractPath = "./out/decompressedFiles/";
+
+	public const int LimitProcessedProducts = 500;
 }
