@@ -1,6 +1,4 @@
-﻿using SameProductEstimator.Rohlik;
-
-namespace SameProductEstimator.Tesco;
+﻿namespace SameProductEstimator.Tesco;
 
 internal class TescoAdapter : Adapter<TescoJsonProduct>
 {

@@ -25,6 +25,8 @@ internal partial class EqualProductsFinder
 
 		Directory.CreateDirectory(logginDirectory);
 		Directory.CreateDirectory(resultDirectory);
+
+		// tady smazat vsechny result folders aby random salt nevedl na psani vsech souboru na nove jmeno
 	}
 
 	private static void AssertAllProductsAreFromSameEshop(List<NormalizedProduct> products, Eshop eshop)
@@ -404,6 +406,26 @@ internal partial class EqualProductsFinder
 			filePath = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(filename)}_{randomNumber}.txt");
 		}
 		return filePath;
+	}
+
+	public static void DeleteAllTextFiles(string directoryPath)
+	{
+		if (!Directory.Exists(directoryPath))
+		{
+			WriteLine($"Directory {directoryPath} does not exist.");
+			return;
+		}
+
+		try
+		{
+			string[] files = Directory.GetFiles(directoryPath, "*.txt");
+			foreach (string file in files)
+				File.Delete(file);
+
+		} catch (Exception ex)
+		{
+			WriteLine($"An error occurred druing cleaning the folder before run. Folder: {directoryPath}, error: {ex.Message}");
+		}
 	}
 
 	#endregion
