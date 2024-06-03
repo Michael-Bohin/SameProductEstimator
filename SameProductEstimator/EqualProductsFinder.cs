@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using Serilog;
+using SerilogTimings.Extensions;
 
 namespace SameProductEstimator;
 
@@ -11,9 +13,12 @@ internal partial class EqualProductsFinder
 	public readonly List<NormalizedProduct> RohlikProducts;
 	public readonly List<NormalizedProduct> TescoProducts;
 	private const string logginDirectory = "./out/equalProductsFinder/", resultDirectory = "./out/equalProductsFinder/results/";
+	private readonly ILogger logger;
 
-	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts)
+	public EqualProductsFinder(List<NormalizedProduct> kosikProducts, List<NormalizedProduct> rohlikProducts, List<NormalizedProduct> tescoProducts, ILogger logger)
 	{
+		this.logger = logger;
+
 		AssertAllProductsAreFromSameEshop(kosikProducts, Eshop.Kosik);
 		AssertAllProductsAreFromSameEshop(rohlikProducts, Eshop.Rohlik);
 		AssertAllProductsAreFromSameEshop(tescoProducts, Eshop.Tesco);
@@ -21,7 +26,7 @@ internal partial class EqualProductsFinder
 		RohlikProducts = rohlikProducts;
 		TescoProducts = tescoProducts;
 
-		WriteLine("Normalized products have been loaded to same product estimator.");
+		Log.Information("Normalized products have been loaded to same product estimator.");
 
 		Directory.CreateDirectory(logginDirectory);
 		Directory.CreateDirectory(resultDirectory);
@@ -45,15 +50,19 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	public async Task SortProbableEqualProductsAsync()
 	{
+		var stopwatchA = logger.BeginOperation("Constructing substrings dictionaries.");
 		EshopSubstrings kosikDict = new(KosikProducts);
 		EshopSubstrings rohlikDict = new(RohlikProducts);
 		EshopSubstrings tescoDict = new(TescoProducts);
+		stopwatchA.Abandon();
 
-		Task task1 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, rohlikDict));
-		Task task2 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, tescoDict));
-		Task task3 = Task.Run(() => GenerateMostProbableEqualProducts(rohlikDict, tescoDict));
-
+		var stopwatchB = logger.BeginOperation("Calling EPF on all eshop pairs.");
+		Task task1 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, rohlikDict, logger));
+		Task task2 = Task.Run(() => GenerateMostProbableEqualProducts(kosikDict, tescoDict, logger));
+		Task task3 = Task.Run(() => GenerateMostProbableEqualProducts(rohlikDict, tescoDict, logger));
+		
 		await Task.WhenAll(task1, task2, task3);
+		stopwatchB.Abandon();
 	}
 
 	/// <summary>
@@ -67,8 +76,9 @@ internal partial class EqualProductsFinder
 	/// </summary>
 	/// <param name="eshopA"></param>
 	/// <param name="eshopB"></param>
-	private static void GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB)
+	private static void GenerateMostProbableEqualProducts(EshopSubstrings eshopA, EshopSubstrings eshopB, ILogger logger)
 	{
+		var stopawatch = logger.BeginOperation("GenerateMostProbableEqualProducts of {eshopA} - {eshopB}", $"{eshopA.Products.First().Eshop}", $"{eshopB.Products.First().Eshop}");
 		EshopSubstrings smallerEshop = eshopA.Products.Count < eshopB.Products.Count ? eshopA : eshopB;
 		EshopSubstrings largerEshop = eshopA.Products.Count >= eshopB.Products.Count ? eshopA : eshopB;
 		CreateLoggingDirectory(smallerEshop, largerEshop);
@@ -84,6 +94,7 @@ internal partial class EqualProductsFinder
 			/**/SortCandidatesByLongestCommonSubsequence(Product, Candidates, largerEshop);/**/
 			/**/SortCandidatesByEditDistance(Product, Candidates, largerEshop);/**/
 		}
+		stopawatch.Abandon();
 	}
 
 	private static void CreateLoggingDirectory(EshopSubstrings smallerEshop, EshopSubstrings largerEshop)

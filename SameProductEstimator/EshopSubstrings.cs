@@ -1,4 +1,6 @@
-﻿namespace SameProductEstimator;
+﻿using Serilog;
+
+namespace SameProductEstimator;
 
 internal class EshopSubstrings
 {
@@ -34,8 +36,8 @@ internal class EshopSubstrings
 
 	private void ConsoleLogDictionarySizeStats()
 	{
-		WriteLine($"Constructed dictionary of product names substrings to list of product references of eshop {Products[0].Eshop}");
-		WriteLine($"Dictionary contains {SubstringsToProducts.Count} keys.");
+		Log.Information("Constructed dictionary of product names substrings to list of product references of eshop {productsCount}", Products[0].Eshop);
+		Log.Information("Dictionary contains {substringCount} keys.", SubstringsToProducts.Count);
 		
 		int counter = 0;
         foreach (List<NormalizedProduct> productsWithSameSubstrings in SubstringsToProducts.Values)
@@ -43,8 +45,8 @@ internal class EshopSubstrings
 			counter += productsWithSameSubstrings.Count;    
         }
 
-		WriteLine($"Sum of all product references {counter}");
-		WriteLine($"Average references per one substring {(double)counter/SubstringsToProducts.Count:f2}");
-		WriteLine($"Average number of ws split substrings per product {(double)SubstringsToProducts.Count / Products.Count:f2}\n");
+		Log.Information("Sum of all product references {Counter}", counter);
+		Log.Information("Average references per one substring {avgRefsPerSubstring}", $"{(double)counter / SubstringsToProducts.Count:f2}");
+		Log.Information("Average number of ws split substrings per product {avgSplitSubstringsPerProduct}\n", $"{(double)SubstringsToProducts.Count / Products.Count:f2}");
     }
 }

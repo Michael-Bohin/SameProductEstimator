@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Serilog;
 
 namespace SameProductEstimator;
 
@@ -66,11 +67,11 @@ internal abstract class Adapter<T>
 	{
 		ProductParserLogger.Log(normalizedProducts, GetEshopType());
 
-		WriteLine(GetNameOf());
-		WriteLine(total);
-		WriteLine($"Normalized products: {normalizedProducts.Count}");
-		WriteLine($"Invalid products: {invalidCount}");
-		WriteLine($"{normalizedProducts.Count} + {invalidCount} = {total}\n");
+		Log.Information(GetNameOf());
+		Log.Information("{Total}", total);
+		Log.Information("Normalized products: {Count}", normalizedProducts.Count);
+		Log.Information("Invalid products: {Count}", invalidCount);
+		Log.Information("{normalizedCount} + {invalidCount} = {total}\n", normalizedProducts.Count, invalidCount, total);
 	}
 
 	protected bool TryGetNormalized(T product, out NormalizedProduct normalizedProduct)
