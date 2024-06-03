@@ -1,6 +1,6 @@
 ﻿namespace SameProductEstimator;
 
-internal class LevenshteinDistance 
+public class LevenshteinDistance 
 {
 	public static int LengthAdjustedEditDistance(string x, string y)
 	{
