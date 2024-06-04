@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SameProductEstimator": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
