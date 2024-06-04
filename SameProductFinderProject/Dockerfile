@@ -7,6 +7,8 @@ COPY ["SameProductFinderProject/SameProductEstimator.csproj", "SameProductFinder
 RUN dotnet restore "./SameProductFinderProject/SameProductEstimator.csproj"
 COPY . .
 WORKDIR "/src/SameProductFinderProject"
+RUN dotnet build "./SameProductEstimator.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet test "./../UnitTests/UnitTests.csproj"
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./SameProductEstimator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
