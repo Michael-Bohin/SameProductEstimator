@@ -5,12 +5,17 @@ using SameProductEstimator.Rohlik;
 using SameProductEstimator.Tesco;
 using Serilog;
 using SerilogTimings.Extensions;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 ILogger logger = RuntimeConfig.Logger();
 Log.Logger = logger;
 
 var timedOpProgram = logger.BeginOperation("Equal products finder stopwatch.");
 var timedAdapters = logger.BeginOperation("Adapters stopwatch.");
+
+Log.Information("current directory: {path}", Directory.GetCurrentDirectory());
+Log.Information("asembly entry location: {path}", Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!);
 
 // Parsing Kosik products
 KosikAdapter ka = new();
