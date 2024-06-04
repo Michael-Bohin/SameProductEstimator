@@ -25,7 +25,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./SameProductFinderProject/.
+          file: ./SameProductFinderProject/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/equalproductsfinder:v1
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/equalproductsfinder:latest
